@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.finalproject.dao.MemberDao;
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.error.TargetNotfoundException;
 
 @CrossOrigin
 @RestController
@@ -42,7 +43,8 @@ public class MemberRestController {
 			@PathVariable String memberId,
 			@RequestBody MemberDto memberDto) {
 		MemberDto originDto = memberDao.selectOne(memberId);
-		//if(originDto == null) throw new TargetNotfoundException();
+		if(originDto == null) throw new TargetNotfoundException();
+		// 각 요소 입력
 		originDto.setMemberPw(memberDto.getMemberPw());
 		originDto.setMemberEmail(memberDto.getMemberEmail());
 		originDto.setMemberBirth(memberDto.getMemberBirth());
@@ -65,7 +67,7 @@ public class MemberRestController {
 	@DeleteMapping("/{memberId}")
 	public void delete(@PathVariable String memberId) {
 		MemberDto memberDto = memberDao.selectOne(memberId);
-		//if(memberDto ==null) throw new TargetNotfoundException("존재하지 않는 회원입니다");
+		if(memberDto ==null) throw new TargetNotfoundException("존재하지 않는 회원입니다");
 		memberDao.delete(memberId);
 	}
 }
