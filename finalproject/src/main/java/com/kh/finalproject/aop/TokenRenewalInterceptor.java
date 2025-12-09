@@ -28,10 +28,13 @@ public class TokenRenewalInterceptor implements HandlerInterceptor{
 										HttpServletResponse response, Object handler) throws Exception {
 		// 1) options 요청인 경우 -> 적용X(true)
 		if(request.getMethod().equalsIgnoreCase("options")) return true;
+		
 		// 2) (비회원) Authorization 헤더가 없는 경우 -> 적용X(true)
 		String bearerToken = request.getHeader("Authorization");
 		if(bearerToken == null) return true;
 		
+		
+		System.out.println("1,2통과");
 		// 3) 토큰의 남은 시간이 충분한 경우
 		try { // Plan A
 			long ms = tokenService.getRemain(bearerToken);
@@ -42,7 +45,6 @@ public class TokenRenewalInterceptor implements HandlerInterceptor{
 			// 발급한 토큰을 클라이언트(응답 헤더)에게 전송
 	        response.setHeader("Access-Control-Expose-Headers", "Access-Token"); 
 	        response.setHeader("Access-Token", newAccessToken); 
-	        
 	        return true;
 		}
 		catch(ExpiredJwtException e) {

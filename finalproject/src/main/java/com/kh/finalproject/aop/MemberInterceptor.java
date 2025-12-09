@@ -12,6 +12,7 @@ import io.jsonwebtoken.ExpiredJwtException; // ★ 이 임포트 추가 필수!
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+
 @Service
 public class MemberInterceptor implements HandlerInterceptor {
 
@@ -21,6 +22,8 @@ public class MemberInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		if(request.getMethod().equalsIgnoreCase("options")) return true;
+
+		// 2) Authorization 헤더 검사
 
 		try {
 			String bearerToken = request.getHeader("Authorization");
@@ -32,7 +35,6 @@ public class MemberInterceptor implements HandlerInterceptor {
 			// 정보 저장
 			request.setAttribute("loginId", tokenVO.getLoginId()); 
 			request.setAttribute("loginLevel", tokenVO.getLoginLevel()); 
-
 			return true;
 		}
 		catch (ExpiredJwtException e) {
