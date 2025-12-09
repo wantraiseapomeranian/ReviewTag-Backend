@@ -51,6 +51,14 @@ public class MemberDao {
 		public boolean updateNickname(MemberDto memberDto) {
 			return sqlSession.update("member.updateNickname", memberDto) > 0 ;
 		}
+		//(비밀번호 수정)
+		public boolean updatePassword(MemberDto memberDto) {
+			//++ 비밀번호 암호화
+			String origin = memberDto.getMemberPw();
+			String encoded = passwordEncoder.encode(origin); // 암호화
+			memberDto.setMemberPw(encoded);
+			return sqlSession.update("member.updatePassword", memberDto) > 0 ;
+		}
 		//(포인트 갱신)
 		public boolean updatePoint(MemberDto memberDto) {
 			return sqlSession.update("member.updatePoint", memberDto) > 0 ;

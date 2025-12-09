@@ -89,6 +89,17 @@ public class MemberRestController {
 		originDto.setMemberAddress2(memberDto.getMemberAddress2());
 		memberDao.update(originDto);
 	}
+	
+	@PutMapping("/password/{loginId}")
+	public void editPassword(
+			@PathVariable String loginId,
+			@RequestBody MemberDto memberDto) {
+		MemberDto originDto = memberDao.selectOne(loginId);
+		if(originDto == null) throw new TargetNotfoundException();
+		// 각 요소 입력
+		originDto.setMemberPw(memberDto.getMemberPw());
+		memberDao.updatePassword(originDto);
+	}
 	//포인트 갱신
 	
 	//신뢰도 갱신
@@ -97,8 +108,6 @@ public class MemberRestController {
 	@PostMapping("/login")
 	public MemberLoginResponseVO login(@RequestBody MemberDto memberDto) {
 		MemberDto findDto = memberDao.selectOne(memberDto.getMemberId());
-		System.out.println(memberDto);
-		System.out.println(findDto);
 		if(findDto == null) throw new TargetNotfoundException("로그인 오류 - 존재하지 않는 계정");
 		//비밀번호 검사
 			boolean valid = passwordEncoder.matches(memberDto.getMemberPw(), findDto.getMemberPw());
@@ -123,10 +132,15 @@ public class MemberRestController {
 	
 	//회원탈퇴
 	@DeleteMapping("/{memberId}")
-	public void delete(@PathVariable String memberId) {
+	public void delete(@PathVariable String memberId,
+			@RequestHeader("Authorization") String bearerToken) {
+		//계정 삭제
 		MemberDto memberDto = memberDao.selectOne(memberId);
 		if(memberDto ==null) throw new TargetNotfoundException("존재하지 않는 회원입니다");
 		memberDao.delete(memberId);
+		//토큰 삭제
+		TokenVO tokenVO = tokenService.parse(bearerToken);
+		memberTokenDao.deleteByTarget(tokenVO.getLoginId());
 	}
 	
 	/// 토큰 갱신
