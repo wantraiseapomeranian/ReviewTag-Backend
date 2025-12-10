@@ -20,9 +20,7 @@ import lombok.NoArgsConstructor;
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class ReviewDto {
 	private Long reviewNo; //리뷰 넘버
-	@JsonProperty("contentsId")
 	private Long reviewContents ; //영화id 외래키 (DB의 review_contents지만, 매핑을 위해 이름 변경)
-	@JsonProperty("loginId")
 	private String reviewWriter; //리뷰 작성자(멤버id 외래키)
 	@Min(0)
 	@Max(5)
@@ -41,4 +39,5 @@ public class ReviewDto {
 	private LocalDateTime reviewWtime; //리뷰 작성시간
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	private LocalDateTime reviewEtime; //리뷰 수정시간
+	private Integer reviewPrice; //영화 가치
 }
