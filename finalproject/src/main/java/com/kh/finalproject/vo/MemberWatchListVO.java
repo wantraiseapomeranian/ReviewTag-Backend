@@ -15,8 +15,8 @@ public class MemberWatchListVO {
 
 	private long watchlistContent;
 	private String watchlistMember;
-	private String wathclistType;
-	private LocalDateTime wathclistTime;
+	private String watchlistType;
+	private LocalDateTime watchlistTime;
 	
 	private String contentsTitle;
 	private String contentsType;
