@@ -27,9 +27,10 @@
 		select * from review where review_writer = #{loginId} and review_contents = #{reviewContents}
 	</select>
 	
-	<!-- 상세조회 -->
+	<!-- 단일(상세)조회 -->
 	<select id="selectOne" resultType="ReviewDto">
 		select * from review where
+		review_contents = #{reviewContents} and
 		review_no = #{reviewNo}
 	</select>
 	
