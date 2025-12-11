@@ -7,13 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// 찜/해제 시 입력 파라미터를 담는 VO
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
-public class RankVO {
-	
-	private int rank;
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
+public class PointItemWishVO {
     private String memberId;
-    private String memberNickname;
-    //private String memberImg;
-    private int score;
+    private int itemNo;
 }
