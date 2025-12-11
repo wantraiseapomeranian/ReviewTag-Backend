@@ -177,5 +177,6 @@ public class MemberRestController {
 	public List<MemberWatchListVO> selectWatchList(@PathVariable String loginId){
 		return memberWatchDao.selectList(loginId);
 	}
-	
+
+
 }
