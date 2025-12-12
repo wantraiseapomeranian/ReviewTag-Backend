@@ -25,4 +25,11 @@ public class ContentsDetailDto {
 	private List<String> genreNames;
 	
 	private Long contentsLike;
+	
+	private double contentsRateAvg;
+	private double contentsPriceAvg;
+	
+	private Integer contentsRateRank;
+	private Integer contentsPriceRank;
+	
 }

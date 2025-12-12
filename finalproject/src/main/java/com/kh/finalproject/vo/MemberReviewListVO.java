@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -24,6 +22,7 @@ public class MemberReviewListVO {
 	private Long reviewContents; //영화id 외래키
 	private String reviewWriter; //리뷰 작성자(멤버id 외래키)
 	private Integer reviewRating; //리뷰 별점
+	private Integer reviewPrice; //리뷰 가격
 	@NotBlank
 	private String reviewText; //리뷰 내용
 	@PositiveOrZero
@@ -33,6 +32,6 @@ public class MemberReviewListVO {
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	private LocalDateTime reviewWtime; //리뷰 작성시간
 	private String contentsPosterPath;
-	private Integer reviewPrice; //영화 가치
+
 	
 }

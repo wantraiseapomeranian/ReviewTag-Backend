@@ -40,4 +40,12 @@ public class ContentsDao {
     public Long selectContentsLike(Long contentsId) {
     	return sqlSession.selectOne("contents.selectContentsLike", contentsId);
     }
+    //별점 랭킹 조회(1~10위)
+    public List<ContentsDetailDto> selectContentsListByRateRank() {
+    	return sqlSession.selectList("contents.selectContentsListByRateRank");
+    }
+    //가격 랭킹 조회(1~10위)
+    public List<ContentsDetailDto> selectContentsListByPriceRank() {
+    	return sqlSession.selectList("contents.selectContentsListByPriceRank");
+    }
  }

@@ -156,4 +156,16 @@ public class TmdbDataRestController {
 	        List<ContentsDetailDto> list = contentsDao.selectContentsListByType(params);
 	        return list;
 	    }
+	    
+	    //랭킹 리스트
+	    //별점
+	    @GetMapping("/contents/rank/rate")
+	    public List<ContentsDetailDto> selectRateRank() {
+	    	return contentsDao.selectContentsListByRateRank();
+	    }
+	    //가격
+	    @GetMapping("/contents/rank/price")
+	    public List<ContentsDetailDto> selectPriceRank() {
+	    	return contentsDao.selectContentsListByPriceRank();
+	    }
 }

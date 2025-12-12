@@ -82,6 +82,12 @@
         
         <result property="contentsLike" column="contents_like_count"/>		<!-- 좋아요 매핑 -->
         
+        <result property="contentsRateAvg" column="contents_rate_avg"/>   <!-- 평균 별점 매핑 -->
+        <result property="contentsPriceAvg" column="contents_price_avg"/> <!-- 평균 가격 매핑 -->
+        
+        <result property="contentsRateRank" column="contents_rate_rank"/>   <!-- 별점 순위 매핑 -->
+        <result property="contentsPriceRank" column="contents_price_rank"/>	<!-- 가격 순위 매핑 -->
+        
         <!-- 장르 이름을 List<String> 타입의 genreNames 필드에 모아서 매핑합니다. -->
         <collection property="genreNames" ofType="string">
             <result column="genre_name_alias"/>
@@ -91,7 +97,10 @@
     <select id="selectContentDetailWithGenres" resultMap="contentDetailMap" parameterType="long">
         SELECT
             C.*,
-            CG.genre_name AS genre_name_alias
+            CG.genre_name AS genre_name_alias,
+            (SELECT COUNT(*) FROM watchlist WHERE watchlist_content = C.contents_id) AS contents_like_count,
+            (SELECT AVG(review_rating) FROM review WHERE review_contents = C.contents_id) AS contents_rate_avg,
+        	(SELECT AVG(review_price) FROM review WHERE review_contents = C.contents_id) AS contents_price_avg
         FROM
             contents C
         LEFT JOIN
@@ -105,7 +114,9 @@
     <select id="selectContentsByGenre" resultMap="contentDetailMap" parameterType="map">
       SELECT 
             MAIN.*,
-            (SELECT COUNT(*) FROM watchlist WHERE watchlist_content = MAIN.contents_id) AS contents_like_count, 
+            (SELECT COUNT(*) FROM watchlist WHERE watchlist_content = MAIN.contents_id) AS contents_like_count,
+            (SELECT AVG(review_rating) FROM review WHERE review_contents = MAIN.contents_id) AS contents_rate_avg,
+            (SELECT AVG(review_price) FROM review WHERE review_contents = MAIN.contents_id) AS contents_price_avg, 
             CG.genre_name AS genre_name_alias
         FROM (
             SELECT * FROM (
@@ -177,6 +188,73 @@
             C.contents_type = #{type}
         ORDER BY 
             C.contents_release_date DESC
+    </select>
+    
+   <select id="selectContentsListByRateRank" resultMap="contentDetailMap">
+      SELECT 
+        RANKED.*, 
+        CG.genre_name AS genre_name_alias
+        FROM (
+        SELECT *
+        FROM (    
+            SELECT MAIN.*,
+            -- ▼▼▼ AS ranking 을 AS contents_rate_rank 로 변경 (ResultMap과 일치시킴) ▼▼▼
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                MAIN.contents_rate_avg DESC NULLS LAST,
+                MAIN.review_count DESC
+            ) AS contents_rate_rank
+            FROM (
+                SELECT C.*,
+                   (SELECT AVG(review_rating) 
+                    FROM review R 
+                    WHERE R.review_contents = C.contents_id) AS contents_rate_avg,
+                   (SELECT COUNT(*) 
+                    FROM review R 
+                    WHERE R.review_contents = C.contents_id) AS review_count
+                FROM contents C
+            ) MAIN
+        )
+        WHERE contents_rate_rank &lt;= 10  ) RANKED
+    
+    LEFT JOIN contents_genre_map CGM ON RANKED.contents_id = CGM.contents_id
+    LEFT JOIN contents_genre CG ON CGM.genre_id = CG.genre_id
+    
+    ORDER BY RANKED.contents_rate_rank ASC
+    </select>
+    
+    <select id="selectContentsListByPriceRank" resultMap="contentDetailMap">
+      SELECT 
+        RANKED.*, 
+        CG.genre_name AS genre_name_alias
+        FROM (
+        SELECT *
+        FROM (    
+            SELECT MAIN.*,
+            -- ▼▼▼ AS ranking 을 AS contents_price_rank 로 변경 ▼▼▼
+            ROW_NUMBER() OVER (
+                ORDER BY 
+                MAIN.contents_price_avg DESC NULLS LAST,
+                MAIN.review_count DESC
+            ) AS contents_price_rank
+            FROM (
+                SELECT C.*,
+                   -- ▼▼▼ [중요 수정] review_rating -> review_price 로 변경해야 함 ▼▼▼
+                   (SELECT AVG(review_price) 
+                    FROM review R 
+                    WHERE R.review_contents = C.contents_id) AS contents_price_avg,
+                   (SELECT COUNT(*) 
+                    FROM review R 
+                    WHERE R.review_contents = C.contents_id) AS review_count
+                FROM contents C
+            ) MAIN
+        )
+        WHERE contents_price_rank &lt;= 10 ) RANKED
+    
+    LEFT JOIN contents_genre_map CGM ON RANKED.contents_id = CGM.contents_id
+    LEFT JOIN contents_genre CG ON CGM.genre_id = CG.genre_id
+    
+    ORDER BY RANKED.contents_price_rank ASC
     </select>
     
     <select id="selectGenreList" resultType="GenreDto">

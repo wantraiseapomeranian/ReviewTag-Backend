@@ -41,6 +41,7 @@ public class ReviewRestController {
 		return reviewDao.selectByContents(reviewContents);
 	}
 
+
 	
 	//로그인 리뷰 조회
 	@GetMapping("/user/{reviewContents}/{reviewWriter}")
@@ -49,6 +50,7 @@ public class ReviewRestController {
 		ReviewDto reviewDto = reviewDao.selectByUserAndContents(reviewWriter, reviewContents);
 		return reviewDto;
 	}
+
 	// 단일 리뷰 조회
 	@GetMapping("/{reviewContents}/{reviewNo}")
 	public ReviewDto selectOne(
@@ -95,6 +97,7 @@ public class ReviewRestController {
         boolean success = reviewDao.delete(reviewContents, reviewNo);
         if(!success) throw new TargetNotfoundException();
     }
+
 
 
 	// 좋아요 관련
