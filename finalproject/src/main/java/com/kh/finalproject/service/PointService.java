@@ -549,6 +549,30 @@ public PointHistoryPageVO getHistoryList(String loginId, int page, String type) 
             .totalCount(totalCount)
             .build();
 }
+@Transactional // 두 작업 중 하나라도 실패하면 롤백되도록 설정
+public boolean addPoint(String memberId, int amount, String reason) {
+    
+    // 1. 포인트 증가 (Member 테이블)
+    MemberDto memberDto = MemberDto.builder()
+            .memberId(memberId)
+            .memberPoint(amount)
+            .build();
+    boolean updateResult = memberDao.upPoint(memberDto);
+
+    // 2. 내역 기록 (PointHistory 테이블)
+    if (updateResult) {
+        PointHistoryDto historyDto = PointHistoryDto.builder()
+                .pointHistoryMemberId(memberId)
+                .pointHistoryAmount(amount)
+                .pointHistoryReason(reason) // 예: "아이콘 중복 환급"
+                .build();
+        
+        pointHistoryDao.insertHistory(historyDto);
+    }
+    
+    return updateResult;
+}
+
 
 }
 

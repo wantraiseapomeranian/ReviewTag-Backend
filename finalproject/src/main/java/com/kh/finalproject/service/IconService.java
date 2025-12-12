@@ -85,13 +85,14 @@ public class IconService {
     @Transactional
     public IconDto drawRandomIcon(String memberId, int inventoryNo) {
         
-      boolean isDeleted = pointInventoryDao.delete(inventoryNo);
+        // 1. [티켓 차감]
+        boolean isDeleted = pointInventoryDao.delete(inventoryNo);
      
         if (!isDeleted) {
             throw new RuntimeException("티켓을 찾을 수 없거나 이미 사용되었습니다.");
         }
 
-        // 2. [뽑기 로직] (기존과 동일)
+        // 2. [뽑기 로직]
         List<IconDto> allIcons = iconDao.selectList();
         
         // EVENT 등급 제외 필터링
@@ -115,7 +116,7 @@ public class IconService {
                 .filter(i -> i.getIconRarity().equalsIgnoreCase(finalRarity))
                 .toList();
 
-        if (pool.isEmpty()) { // 꽝 방지
+        if (pool.isEmpty()) { // 해당 등급이 없을 경우 꽝 방지(COMMON)
             pool = gachaPool.stream().filter(i -> i.getIconRarity().equalsIgnoreCase("COMMON")).toList();
         }
 
@@ -126,8 +127,15 @@ public class IconService {
         int count = memberIconDao.checkUserHasIcon(memberId, picked.getIconId());
         
         if (count > 0) {
-            // 중복 -> 포인트 환급 (500P)
-            memberDao.updatePoint(MemberDto.builder().memberId(memberId).memberPoint(500).build()); // 포인트 증가 로직 확인 필요 (기존 MemberDao 활용)
+            // -----------------------------------------------------------
+            // [수정 완료] 중복 -> 포인트 환급 (500P 증가)
+            // SQL이 '기존 + 500' 로직이므로, 여기서 500을 넘겨주면 됩니다.
+            // 메서드 이름도 XML ID인 upPoint로 변경했습니다.
+            // -----------------------------------------------------------
+            memberDao.upPoint(MemberDto.builder()
+                    .memberId(memberId)
+                    .memberPoint(500) 
+                    .build());
             
             pointHistoryDao.insertHistory(PointHistoryDto.builder()
                     .pointHistoryMemberId(memberId)
@@ -137,7 +145,7 @@ public class IconService {
             
             picked.setIconName(picked.getIconName() + " (중복 500P 환급)");
         } else {
-            // 신규 -> 지급 (MemberIconDao)
+            // 신규 -> 지급
             memberIconDao.insertMemberIcon(memberId, picked.getIconId());
         }
 

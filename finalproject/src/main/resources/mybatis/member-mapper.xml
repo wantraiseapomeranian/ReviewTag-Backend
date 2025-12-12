@@ -103,6 +103,11 @@
     WHERE M.member_id = #{memberId}
 </select>
 
+<update id="upPoint">
+    UPDATE member
+    SET member_point = member_point + #{memberPoint}
+    WHERE member_id = #{memberId}
+</update>
 
 
 </mapper>

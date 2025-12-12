@@ -65,6 +65,9 @@ public class MemberDao {
 		public boolean updatePoint(MemberDto memberDto) {
 			return sqlSession.update("member.updatePoint", memberDto) > 0 ;
 		}
+		public boolean upPoint(MemberDto memberDto) {
+			return sqlSession.update("member.upPoint", memberDto) > 0 ;
+		}
 		//(신뢰도 갱신)
 		public boolean updateReliability(MemberDto memberDto) {
 			return sqlSession.update("member.updateReliability", memberDto) > 0 ;
