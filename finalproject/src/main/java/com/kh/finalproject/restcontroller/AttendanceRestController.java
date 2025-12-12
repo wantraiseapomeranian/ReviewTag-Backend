@@ -1,5 +1,6 @@
 package com.kh.finalproject.restcontroller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,28 +12,26 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.finalproject.dto.AttendanceHistoryDto;
 import com.kh.finalproject.dto.AttendanceStatusDto;
 import com.kh.finalproject.service.AttendanceService;
 
 @RestController
-@RequestMapping("/point/main/attendance")
+@RequestMapping("/point/main/attendance/")
 @CrossOrigin // CORS 허용
 public class AttendanceRestController {
 
 	@Autowired
 	private AttendanceService attendanceService;
 	
-	// [수정 1] memberId -> loginId
+	// 
 	@GetMapping("/status")
-	public ResponseEntity<AttendanceStatusDto> getStatus(
-			@RequestAttribute String loginId) { 
-		
-		// 서비스로 넘길 땐 변수명 달라도 값만 맞으면 됨	
-		AttendanceStatusDto status = attendanceService.getMyStatus(loginId);
-		return ResponseEntity.ok(status);
+	public ResponseEntity<Boolean> getStatus(@RequestAttribute String loginId) {
+	    boolean checked = attendanceService.isTodayChecked(loginId);
+	    return ResponseEntity.ok(checked);
 	}
-	
-	// [정상] 여기는 loginId로 잘 하셨습니다.
+
+	//
 	@PostMapping("/check")
 	public ResponseEntity<String> doCheck(
 			@RequestAttribute String loginId) {
@@ -49,7 +48,7 @@ public class AttendanceRestController {
 		}
 	}
 
-	// [수정 2] memberId -> loginId
+	// 
 	@GetMapping("/calendar")
 	public ResponseEntity<List<String>> getCalendar(
 			@RequestAttribute String loginId) { 

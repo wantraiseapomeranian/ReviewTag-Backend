@@ -79,4 +79,60 @@
           point_history_no = #{pointHistoryNo}
   </update>
   
+
+
+<select id="selectCurrentNickStyle" parameterType="string" resultType="string">
+    SELECT point_history_reason 
+    FROM (
+        SELECT point_history_reason
+        FROM point_history
+        WHERE point_history_member_id = #{memberId}
+          AND point_history_reason LIKE '[착용]%' 
+        ORDER BY point_history_no DESC
+    )
+    WHERE ROWNUM &lt;= 1
+</select>
+
+<select id="countHistory" resultType="int">
+    SELECT count(*) 
+    FROM point_history 
+    WHERE point_history_member_id = #{memberId}
+    
+    <choose>
+        <when test="type == 'earn'">
+            AND point_history_amount > 0
+        </when>
+        <when test="type == 'use'">
+            AND point_history_amount &lt; 0
+        </when>
+        <when test="type == 'item'">
+            AND point_history_amount = 0
+        </when>
+    </choose>
+</select>
+
+<select id="selectListByMemberIdPaging" resultType="com.kh.finalproject.dto.PointHistoryDto">
+    SELECT * FROM (
+        SELECT TMP.*, ROWNUM RN FROM (
+            SELECT * FROM point_history
+            WHERE point_history_member_id = #{memberId}
+            
+            <choose>
+                <when test="type == 'earn'">
+                    AND point_history_amount > 0
+                </when>
+                <when test="type == 'use'">
+                    AND point_history_amount &lt; 0
+                </when>
+                <when test="type == 'item'">
+                    AND point_history_amount = 0
+                </when>
+            </choose>
+
+            ORDER BY point_history_no DESC
+        ) TMP
+    )
+    WHERE RN BETWEEN #{startRow} AND #{endRow}
+</select>
+  
 </mapper>
