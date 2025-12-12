@@ -21,8 +21,8 @@ import lombok.NoArgsConstructor;
 public class ReviewVO {
 	private String memberNickname;
 	private Long reviewNo; 
-	@JsonProperty("contentsId")
 	private Long reviewContents;
+	private String reviewWriter;
 	@Min(0)
 	@Max(5)
 	private Integer reviewRating; //금액제면 컬럼+ 필요
@@ -40,4 +40,5 @@ public class ReviewVO {
 	private LocalDateTime reviewWtime; 
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	private LocalDateTime reviewEtime;
+	private Integer reviewPrice; //영화 가치
 }
