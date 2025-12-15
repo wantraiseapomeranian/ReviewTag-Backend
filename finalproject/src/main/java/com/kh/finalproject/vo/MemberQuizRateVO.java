@@ -1,9 +1,7 @@
 package com.kh.finalproject.vo;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,24 +10,16 @@ import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data @AllArgsConstructor @NoArgsConstructor @Builder
-public class MemberQuizListVO {
-	
+public class MemberQuizRateVO {
+
 	private String quizLogMemberId;
-	private int quizLogQuizId;
-	private String quizLogIsCorrect;
-	private String quizQuestion;
-	private int quizSolveCount;
 	private int quizContentsId;
 	private String contentsTitle;
 	private int correctCount;
+	private int wrongCount;
 	
+	@JsonProperty("correctRate")
 	public double getCorrectRate() {
-		if(quizSolveCount==0) {
-			return 0;
-		} else {
-			return (double) correctCount / quizSolveCount;
-		}
+		return (double) correctCount / (correctCount+wrongCount);
 	}
-
-
 }

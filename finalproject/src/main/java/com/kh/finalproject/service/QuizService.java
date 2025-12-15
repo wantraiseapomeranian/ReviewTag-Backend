@@ -80,13 +80,16 @@ public class QuizService {
     }
     
     //상세 조회
-    //추후 마이페이지에 들어갈 경우 Token 비교 로직 추가 예정
-    public QuizDto getQuizDetail(long quizId) {
+    public QuizDto getQuizDetail(long quizId, String loginId, String loginLevel) {
     	
     	//퀴즈 조회
     	QuizDto findDto = quizDao.selectOne(quizId);
 		if(findDto == null) throw new TargetNotfoundException("존재하지 않는 퀴즈입니다.");
     	
+		boolean isOwner = findDto.getQuizCreatorId().equals(loginId);
+		boolean isAdmin = "관리자".equals(loginLevel);
+    	if(!isOwner && !isAdmin) throw new NeedPermissionException();
+		
     	return findDto;
     }
     
@@ -110,9 +113,5 @@ public class QuizService {
         return quizDao.increaseQuizReportCount(quizId);
     }
     
-    //내가 등록한 퀴즈 목록 조회
-    public List<QuizDto> selectMyQuizList(String loginId) {
-        return quizDao.selectMyQuizList(loginId);
-    }
     
 }

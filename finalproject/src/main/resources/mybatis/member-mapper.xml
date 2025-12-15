@@ -23,6 +23,36 @@
 		select * from member order by member_join desc
 	</select>
 	
+	<!-- 관리자 제외하고 조회 -->
+	<select id="selectListByAdmin" resultType="memberDto">
+		select * from member 
+		where member_level != '관리자'
+		order by member_join desc
+	</select>
+	
+	<!-- 검색 -->
+	<select id="selectAdminList" parameterType="map" resultType="MemberDto">
+		select * from member
+		<where>
+			<if test="keyword != null and keyword != ''">
+				<choose>
+					<when test="type == 'memberId'">
+						and member_id LIKE '%' || #{keyword} || '%'
+					</when>
+					
+					<when test="type == 'memberNickname'">
+						and member_nickname LIKE '%' || #{keyword} || '%'
+					</when>
+					
+					<when test="type == 'memberLevel'">
+						and member_level = #{keyword}
+					</when>
+				</choose>
+			</if>
+		</where>
+		order by member_join desc
+	</select>
+	
 	
 	<!-- 상세조회 -->
 	<select id="detail" resultType="memberDto">
@@ -71,11 +101,49 @@
 		where member_id=#{memberId}
 	</update>
 	
+	<update id="updateMemberLevel">
+		update member
+		set member_level = #{memberLevel}
+		where member_id = #{memberId}
+	</update>
+	
 	<!-- 삭제 -->
 	<delete id="delete">
 		delete member where member_id = #{memberId}
 	</delete>
-	
+	<update id="updateMemberIcon">
+        UPDATE MEMBER SET MEMBER_ICON_NO = #{iconId} WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="deleteMemberIcon">
+        UPDATE MEMBER SET MEMBER_ICON_NO = NULL WHERE MEMBER_ID = #{memberId}
+    </update>
+    
+<select id="selectMemberPointInfo" resultType="MemberPointVO">
+    SELECT 
+        M.member_id        AS "memberId",
+        M.member_nick      AS "nickname",
+        M.member_point     AS "point",
+        M.member_level     AS "level",
+        M.member_nick_style AS "nickStyle",
+
+        -- ⭐ 장착 중 아이콘 이미지 경로
+        (SELECT I.icon_src
+         FROM MEMBER_ICONS MI
+         JOIN ICON I ON MI.member_icon_icon = I.icon_id
+         WHERE MI.member_icon_member = M.member_id
+           AND MI.is_equipped = 'Y'
+         FETCH FIRST 1 ROWS ONLY) AS "iconSrc"
+
+    FROM MEMBER M
+    WHERE M.member_id = #{memberId}
+</select>
+
+<update id="upPoint">
+    UPDATE member
+    SET member_point = member_point + #{memberPoint}
+    WHERE member_id = #{memberId}
+</update>
 
 
 </mapper>

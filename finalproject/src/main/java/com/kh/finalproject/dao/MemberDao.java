@@ -1,6 +1,8 @@
 package com.kh.finalproject.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,18 @@ public class MemberDao {
 		public MemberDto selectOneByMemberNickname(String memberNickname) {
 			return sqlSession.selectOne("member.detailByNickname", memberNickname);
 		}
+		//관리자 제외하고 조회
+		public List<MemberDto> selectListByAdmin(){
+			return sqlSession.selectList("member.selectListByAdmin");
+		}
+		//회원검색
+		public List<MemberDto> selectAdminMemberList(String type, String keyword) {
+		    Map<String, Object> params = new HashMap<>();
+		    params.put("type", type);
+		    params.put("keyword", keyword);
+		    return sqlSession.selectList("member.selectAdminList", params);
+		}
+		
 	
 	/// 수정
 		//(회원기본정보 수정)
@@ -63,18 +77,21 @@ public class MemberDao {
 		public boolean updatePoint(MemberDto memberDto) {
 			return sqlSession.update("member.updatePoint", memberDto) > 0 ;
 		}
+		public boolean upPoint(MemberDto memberDto) {
+			return sqlSession.update("member.upPoint", memberDto) > 0 ;
+		}
 		//(신뢰도 갱신)
 		public boolean updateReliability(MemberDto memberDto) {
 			return sqlSession.update("member.updateReliability", memberDto) > 0 ;
+		}
+		//(회원등급 수정)
+		public boolean updateMemberLevel(MemberDto memberDto) {
+			return sqlSession.update("member.updateMemberLevel", memberDto) > 0;
 		}
 
 	/// 삭제 (회원탈퇴)
 	public boolean delete(String memberId) {
 		return sqlSession.delete("member.delete",memberId) > 0;
 	}
-
-
-	
-	
-	
+    
 }

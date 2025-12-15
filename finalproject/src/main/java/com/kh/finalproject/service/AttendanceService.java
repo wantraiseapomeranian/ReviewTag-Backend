@@ -108,4 +108,18 @@ public class AttendanceService {
 	public List<String> getMyAttendanceDates(String loginId) {
         return historyDao.selectCalendarDates(loginId);
     }
+	
+	public boolean isTodayChecked(String loginId) {
+	    AttendanceStatusDto status = statusDao.selectOne(loginId);
+	    if (status == null || status.getAttendanceStatusLastdate() == null) {
+	        return false;
+	    }
+
+	    LocalDate last = status.getAttendanceStatusLastdate()
+	            .toLocalDateTime()
+	            .toLocalDate();
+
+	    return last.isEqual(LocalDate.now());
+	}
+
 }

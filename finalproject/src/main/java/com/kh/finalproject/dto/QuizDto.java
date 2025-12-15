@@ -39,7 +39,7 @@ public class QuizDto {
 	private String quizStatus = "ACTIVE";
 	
 	//퀴즈를 푼 사람 수
-	private int solveCount;
+	private int quizSolveCount;
 	
 	//시간 관련
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

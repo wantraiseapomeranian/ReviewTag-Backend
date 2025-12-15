@@ -9,13 +9,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.finalproject.dao.MemberDao;
+import com.kh.finalproject.dao.MemberTokenDao;
+import com.kh.finalproject.dto.MemberDto;
 import com.kh.finalproject.dto.QuizDto;
+import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AdminService;
 import com.kh.finalproject.service.QuizService;
+import com.kh.finalproject.service.TokenService;
 import com.kh.finalproject.vo.QuizReportDetailVO;
 import com.kh.finalproject.vo.QuizReportStatsVO;
 import com.kh.finalproject.vo.TokenVO;
@@ -30,6 +36,64 @@ public class AdminRestController {
 	
 	@Autowired
 	private AdminService adminService;
+	
+	@Autowired
+	private MemberDao memberDao;
+	
+	@Autowired
+	private TokenService tokenService;
+	
+	@Autowired
+	private MemberTokenDao memberTokenDao;
+	
+	//회원 목록 조회(관리자 제외)
+	@GetMapping("/members") 
+	public List<MemberDto> getMemberList(
+			@RequestParam(required = false) String type, 
+			@RequestParam(required = false) String keyword
+			){
+		
+		return memberDao.selectAdminMemberList(type, keyword);
+	}
+	
+	//회원 상세 조회
+	@GetMapping("/members/{memberId}")
+    public MemberDto getMemberDetail(
+            @PathVariable String memberId
+            ) {
+        MemberDto member = memberDao.selectOne(memberId);
+        
+        if(member == null)
+            throw new TargetNotfoundException();
+        
+        return member;
+    }
+	
+	//회원등급변경
+	@PatchMapping("/members/{memberId}/memberLevel")
+	public void changeLevel(
+	        @PathVariable String memberId,
+	        @RequestParam String memberLevel) {
+	    
+	    MemberDto memberDto = memberDao.selectOne(memberId);
+	    if(memberDto == null) throw new TargetNotfoundException();
+
+	    memberDto.setMemberLevel(memberLevel);
+	    memberDao.updateMemberLevel(memberDto);
+	}
+	
+	//회원 강제 탈퇴
+	@DeleteMapping("/members/{memberId}")
+	public void delete(@PathVariable String memberId,
+			@RequestHeader("Authorization") String bearerToken) {
+		//계정 삭제
+		MemberDto memberDto = memberDao.selectOne(memberId);
+		if(memberDto ==null) throw new TargetNotfoundException("존재하지 않는 회원입니다");
+		memberDao.delete(memberId);
+		//토큰 삭제
+		TokenVO tokenVO = tokenService.parse(bearerToken);
+		memberTokenDao.deleteByTarget(tokenVO.getLoginId());
+	}
 	
 	//퀴즈 신고 관리 페이지
 	@GetMapping("/quizzes/reports")

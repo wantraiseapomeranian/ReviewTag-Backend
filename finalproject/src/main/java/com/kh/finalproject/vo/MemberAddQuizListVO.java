@@ -1,25 +1,23 @@
 package com.kh.finalproject.vo;
 
-import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Data @AllArgsConstructor @NoArgsConstructor @Builder
-public class MemberQuizListVO {
-	
-	private String quizLogMemberId;
-	private int quizLogQuizId;
-	private String quizLogIsCorrect;
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
+public class MemberAddQuizListVO {
+	private Long quizId;
+	private Long quizContentsId;
 	private String quizQuestion;
+	private String quizQuestionType;
+	private String quizQuestionOption1;
+	private String quizQuestionOption2;
+	private String quizQuestionOption3;
+	private String quizQuestionOption4;
+	private String quizAnswer;
 	private int quizSolveCount;
-	private int quizContentsId;
+	
 	private String contentsTitle;
 	private int correctCount;
 	
@@ -30,6 +28,6 @@ public class MemberQuizListVO {
 			return (double) correctCount / quizSolveCount;
 		}
 	}
-
-
+	
+	
 }
