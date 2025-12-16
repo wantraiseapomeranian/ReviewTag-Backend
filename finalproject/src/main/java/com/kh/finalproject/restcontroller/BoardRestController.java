@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.finalproject.dao.BoardDao;
-import com.kh.finalproject.dto.AttachmentDto;
 import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AttachmentService;
+import com.kh.finalproject.vo.PageResponseVO;
+import com.kh.finalproject.vo.PageVO;
 
 @CrossOrigin
 @RestController
@@ -71,6 +72,16 @@ public class BoardRestController {
 	public List<BoardDto> selectList(){
 		return boardDao.selectList();
 	}
+	//전체 조회
+	@GetMapping("/page/{page}")
+	public PageResponseVO selectList(@PathVariable int page){
+		int totalCount =boardDao.countBoard();
+		PageVO pageVO = new PageVO();
+		pageVO.setPage(page);
+		pageVO.setTotalCount(totalCount);
+		List<BoardDto> list = boardDao.selectListWithPage(pageVO);
+		return new PageResponseVO<>(list, pageVO);
+	}
 		
 	//상세 조회
 	@GetMapping("/{boardNo}")
@@ -79,19 +90,25 @@ public class BoardRestController {
 	}
 	
 	// 컨텐츠별 조회
-	@GetMapping("/contentsId/{contentsId}")
-	public List<BoardDto> selesctListByContents(@PathVariable long contentsId){
-		return boardDao.selesctListByContents(contentsId);
+	@GetMapping("/contentsId/{contentsId}/{page}")
+	public PageResponseVO selesctListByContents(
+			@PathVariable long contentsId, @PathVariable int page){
+		int totalCount = boardDao.countContentsBoard(contentsId);
+		PageVO pageVO = new PageVO();
+		pageVO.setPage(page);
+		pageVO.setTotalCount(totalCount);
+		List<BoardDto> list = boardDao.selectListByContents(contentsId, pageVO);
+		return new PageResponseVO<>(list, pageVO);
 	}
 	// 컨텐츠별 5개 조회
-	@GetMapping("/contentsId/{contentsId}/5")
+	@GetMapping("/contentsId/{contentsId}/five")
 	public List<BoardDto> selesctListBy5Contents(@PathVariable long contentsId){
-		return boardDao.selesctListBy5Contents(contentsId);
+		return boardDao.selectListBy5Contents(contentsId);
 	}
 	
 	
 	// 게시글 삭제
-	@DeleteMapping("/{boardNo}")
+	@DeleteMapping("/boardNo/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
 		boardDao.delete(boardNo);
 	}

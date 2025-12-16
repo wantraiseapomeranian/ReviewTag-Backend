@@ -21,14 +21,36 @@
 			)
 	</insert>
 	
+	
 	<!-- 조회 -->
 	<select id="selectList" resultType="boardDto">
 		select * from board order by board_no desc
 	</select>
+	<select id="selectListWithPage" resultType="boardDto">
+		select * from (
+		select rownum rn, TMP.* from(
+			select * from board order by board_no desc
+		) TMP
+		) where rn between #{begin} and #{end}
+	</select>
+	<select id="countBoard" resultType="int">
+	    select count(*) from board
+	</select>
 	
+	
+	<!-- 컨텐츠별 조회 -->
 	<select id="selectListByContents" resultType="boardDto">
-		select * from board where board_contents_id= #{boardContentsId}
-		order by board_no desc
+		select * from (
+		select rownum rn, TMP.* from(
+			select * from board where board_contents_id= #{boardContentsId}
+			order by board_no desc
+		) TMP
+		) where rn between #{pageVO.begin} and #{pageVO.end}
+	</select>
+	<!-- 컨텐츠별게시판 카운트 -->
+	<select id="countContentsBoard" resultType="int">
+	    select count(*) from board
+	    where board_contents_id= #{boardContentsId}
 	</select>
 
 	<select id = "selectListBy5Contents" resultType="boardDto">

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.BoardDto;
+import com.kh.finalproject.vo.PageVO;
 
 @Repository
 public class BoardDao {
@@ -28,13 +29,30 @@ public class BoardDao {
 	public List<BoardDto> selectList(){
 		return sqlSession.selectList("board.selectList");
 	}
+	// 조회 : 전체 조회 (페이지네이션)
+	public List<BoardDto> selectListWithPage(PageVO pageVO){
+		return sqlSession.selectList("board.selectListWithPage", pageVO);
+	}
+	public int countBoard() {
+		return sqlSession.selectOne("board.countBoard");
+	}
+	
 	
 	// 조회 : 컨텐츠별 조회
-	public List<BoardDto> selesctListByContents(Long boardContentsId){
-		return sqlSession.selectList("board.selectListByContents", boardContentsId);
+	// - 페이지네이션 O
+	public List<BoardDto> selectListByContents(Long boardContentsId,PageVO pageVO){
+		Map<String, Object> param = new HashMap<>();
+		param.put("boardContentsId", boardContentsId);
+		param.put("pageVO", pageVO);
+		return sqlSession.selectList("board.selectListByContents", param);
 	}
-	// 조회 : 컨텐츠별 5개 항목조회 (contents detail 적용)
-	public List<BoardDto> selesctListBy5Contents(Long boardContentsId){
+	public int countContentsBoard(long boardContentsId) {
+		return sqlSession.selectOne("board.countContentsBoard", boardContentsId);
+	}
+	
+	// 조회 : 컨텐츠별 5개 항목조회
+	// - contents detail 적용 / 페이지네이션 X
+	public List<BoardDto> selectListBy5Contents(Long boardContentsId){
 		return sqlSession.selectList("board.selectListBy5Contents", boardContentsId);
 	}
 	
