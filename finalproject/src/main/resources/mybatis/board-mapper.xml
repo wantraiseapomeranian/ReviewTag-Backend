@@ -37,6 +37,10 @@
 			order by board_no desc
 			) where rownum &lt;=5
 	</select>
+	
+	<select id="selectViewCount" resultType="int">
+		select board_view_count from board where board_no = #{boardNo}
+	</select>
 
 	
 	<!-- 상세조회 -->
@@ -55,6 +59,11 @@
 			board_etime=systimestamp
 		where board_no=#{boardNo}
 	</update>
+	
+	<update id="increaseViewCount">
+		update board set board_view_count = board_view_count+1 where board_no = #{boardNo}
+	</update>
+	
 	
 	<!-- 삭제 -->
 	<delete id="delete">

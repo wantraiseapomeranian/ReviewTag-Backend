@@ -66,4 +66,10 @@ public class BoardDao {
 		return sqlSession.selectOne("board.findAttachment", boardNo);
 	}
 	
+	//조회수
+	public int increaseViewCount(int boardNo) {
+		sqlSession.update("board.increaseViewCount", boardNo);
+		return sqlSession.selectOne("board.selectViewCount", boardNo);
+	}
+	
 }
