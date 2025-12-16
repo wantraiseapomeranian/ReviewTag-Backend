@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.QuizDto;
+import com.kh.finalproject.vo.PageVO;
 
 @Repository
 public class QuizDao {
@@ -48,7 +49,7 @@ public class QuizDao {
 	public List<QuizDto> selectMyQuizList(String loginId) {
 	    return sqlSession.selectList("quiz.listByMyQuiz", loginId);
 	}
-	
+
 	//퀴즈 수정
 	public boolean update(QuizDto quizDto) {
 		return sqlSession.update("quiz.update", quizDto) > 0;
