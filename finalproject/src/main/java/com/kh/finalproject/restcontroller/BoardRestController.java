@@ -16,11 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.finalproject.dao.BoardDao;
+import com.kh.finalproject.dao.BoardResponseDao;
+
+
 import com.kh.finalproject.dto.BoardDto;
+import com.kh.finalproject.dto.BoardResponseDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AttachmentService;
+
+import com.kh.finalproject.vo.BoardResponseVO;
 import com.kh.finalproject.vo.PageResponseVO;
 import com.kh.finalproject.vo.PageVO;
+
 
 @CrossOrigin
 @RestController
@@ -31,6 +38,8 @@ public class BoardRestController {
 	private BoardDao boardDao;
 	@Autowired
 	private AttachmentService attachmentService;
+	@Autowired
+	private BoardResponseDao boardResponseDao;
 	
 	// 게시글 등록
 	@PostMapping("/")
@@ -65,7 +74,6 @@ public class BoardRestController {
 //		return numbers;
 //	}
 	
-
 	
 	//전체 조회
 	@GetMapping("/")
@@ -111,6 +119,69 @@ public class BoardRestController {
 	@DeleteMapping("/boardNo/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
 		boardDao.delete(boardNo);
+	}
+	
+	
+	/////////////////////////좋아요 & 싫어요
+	
+	//눌렀는지 안눌렀는지 확인
+	@PostMapping("/check")
+	public BoardResponseVO check(@RequestParam int boardNo, @RequestParam String loginId) {
+		boolean response = boardResponseDao.countForCheck(loginId, boardNo);
+		String responseType = boardResponseDao.selectMemberResponse(loginId, boardNo);
+		int likeCount = boardResponseDao.countLikeByboardNo(boardNo);
+		int unlikeCount = boardResponseDao.countUnlikeByboardNo(boardNo);
+		return BoardResponseVO.builder()
+						.response(response)
+						.responseType(responseType)
+						.likeCount(likeCount)
+						.unlikeCount(unlikeCount)
+					.build();
+	}
+	
+	@PostMapping("/action")
+	public BoardResponseVO action(@RequestBody BoardResponseDto boardResponseDto) {
+		boolean before = boardResponseDao.countForCheck(boardResponseDto.getMemberId(), boardResponseDto.getBoardNo());
+		
+		if (before) {// 좋아요나 싫어요를 눌렀던 상태면
+			
+			//좋아요를 눌렀었는지 싫어요를 눌렀었는지 조회
+			String responseType = 
+					boardResponseDao.selectMemberResponse(boardResponseDto.getMemberId(), boardResponseDto.getBoardNo());
+			
+			//좋아요를 누른 상태에서 또 좋아요를 누른 경우 or 싫어요를 누른 상태에서 또 싫어요를 누른 경우
+			if(responseType.equals(boardResponseDto.getResponseType())) { 
+				//기존의 response 삭제
+				boardResponseDao.delete(boardResponseDto.getMemberId(), boardResponseDto.getBoardNo());
+			}
+			
+			//기존의 것과 다른 것을 누른 경우
+			else {
+				//기존의 response 삭제 후 등록
+				boardResponseDao.delete(boardResponseDto.getMemberId(), boardResponseDto.getBoardNo());
+				boardResponseDao.insert(boardResponseDto);
+			}
+			
+			
+		} else {// 좋아요나 싫어요 안한 상태면
+			boardResponseDao.insert(boardResponseDto);
+		}
+
+		int likeCount = boardResponseDao.countLikeByboardNo(boardResponseDto.getBoardNo());
+		int unlikeCount = boardResponseDao.countUnlikeByboardNo(boardResponseDto.getBoardNo());
+
+		//board 테이블에 좋아요 수 & 싫어요 수 갱신
+		boardResponseDao.updateBoardLike(boardResponseDto.getBoardNo());
+		boardResponseDao.updateBoardUnlike(boardResponseDto.getBoardNo());
+		
+		String changedType = boardResponseDao.selectMemberResponse(boardResponseDto.getMemberId(), boardResponseDto.getBoardNo());
+		
+		return BoardResponseVO.builder()
+				.response(!before)
+				.responseType(changedType)
+				.likeCount(likeCount)
+				.unlikeCount(unlikeCount)
+			.build();
 	}
 	
 }
