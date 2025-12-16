@@ -116,7 +116,7 @@ public class BoardRestController {
 	
 	
 	// 게시글 삭제
-	@DeleteMapping("/boardNo/{boardNo}")
+	@DeleteMapping("/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
 		boardDao.delete(boardNo);
 	}

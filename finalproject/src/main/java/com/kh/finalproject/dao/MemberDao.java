@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.vo.PageVO;
 
 @Repository
 public class MemberDao {
@@ -42,16 +43,29 @@ public class MemberDao {
 			return sqlSession.selectOne("member.detailByNickname", memberNickname);
 		}
 		//관리자 제외하고 조회
-		public List<MemberDto> selectListByAdmin(){
-			return sqlSession.selectList("member.selectListByAdmin");
+		public List<MemberDto> selectListExceptAdmin(PageVO pageVO){
+			return sqlSession.selectList("member.selectListExceptAdmin", pageVO);
+		}
+		public int countMember() {
+			return sqlSession.selectOne("member.countMember");
 		}
 		//회원검색
-		public List<MemberDto> selectAdminMemberList(String type, String keyword) {
+		public List<MemberDto> selectAdminMemberList(String type, String keyword, PageVO pageVO) {
 		    Map<String, Object> params = new HashMap<>();
+		    params.put("pageVO", pageVO);
 		    params.put("type", type);
 		    params.put("keyword", keyword);
 		    return sqlSession.selectList("member.selectAdminList", params);
 		}
+		public int countSearchMember(String type, String keyword) {
+		    Map<String, Object> params = new HashMap<>();
+		    params.put("type", type);
+		    params.put("keyword", keyword);
+			return sqlSession.selectOne("member.countSearchMember", params);
+		}
+		
+		
+		
 		
 	
 	/// 수정

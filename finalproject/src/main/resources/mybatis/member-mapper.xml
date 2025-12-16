@@ -23,17 +23,27 @@
 		select * from member order by member_join desc
 	</select>
 	
-	<!-- 관리자 제외하고 조회 -->
-	<select id="selectListByAdmin" resultType="memberDto">
-		select * from member 
-		where member_level != '관리자'
-		order by member_join desc
+	<!-- 관리자 제외하고 조회 + 페이지네이션 -->
+	<select id="selectListExceptAdmin" resultType="memberDto">
+		select * from (
+		select rownum rn, TMP.* from(
+			select * from member 
+			where member_level != '관리자'
+			order by member_join desc
+		) TMP
+		) where rn between #{begin} and #{end}
+	</select>
+	<select id="countMember" resultType="int">
+	    select count(*) from board
 	</select>
 	
-	<!-- 검색 -->
+	<!-- 검색 (관리자 제외)-->
 	<select id="selectAdminList" parameterType="map" resultType="MemberDto">
+				select * from (
+		select rownum rn, TMP.* from(
 		select * from member
 		<where>
+			member_level != '관리자'
 			<if test="keyword != null and keyword != ''">
 				<choose>
 					<when test="type == 'memberId'">
@@ -51,8 +61,28 @@
 			</if>
 		</where>
 		order by member_join desc
+				) TMP
+		) where rn between #{pageVO.begin} and #{pageVO.end}
 	</select>
-	
+	<select id="countSearchMember" resultType="int">
+	    select count(*) from member
+    	<where>
+    		member_level != '관리자'
+			<if test="keyword != null and keyword != ''">
+				<choose>
+					<when test="type == 'memberId'">
+						and member_id LIKE '%' || #{keyword} || '%'
+					</when>
+					<when test="type == 'memberNickname'">
+						and member_nickname LIKE '%' || #{keyword} || '%'
+					</when>
+					<when test="type == 'memberLevel'">
+						and member_level = #{keyword}
+					</when>
+				</choose>
+			</if>
+		</where>
+	</select>
 	
 	<!-- 상세조회 -->
 	<select id="detail" resultType="memberDto">

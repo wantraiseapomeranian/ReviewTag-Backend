@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.finalproject.dao.MemberDao;
 import com.kh.finalproject.dao.MemberTokenDao;
+import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.dto.MemberDto;
 import com.kh.finalproject.dto.QuizDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AdminService;
 import com.kh.finalproject.service.QuizService;
 import com.kh.finalproject.service.TokenService;
+import com.kh.finalproject.vo.PageResponseVO;
+import com.kh.finalproject.vo.PageVO;
 import com.kh.finalproject.vo.QuizReportDetailVO;
 import com.kh.finalproject.vo.QuizReportStatsVO;
 import com.kh.finalproject.vo.TokenVO;
@@ -48,13 +51,27 @@ public class AdminRestController {
 	
 	//회원 목록 조회(관리자 제외)
 	@GetMapping("/members") 
-	public List<MemberDto> getMemberList(
+	public PageResponseVO  getMemberList(
+			@RequestParam int page,
 			@RequestParam(required = false) String type, 
 			@RequestParam(required = false) String keyword
 			){
+		PageVO pageVO = new PageVO();
+		pageVO.setPage(page);
 		
-		return memberDao.selectAdminMemberList(type, keyword);
+		if(type != "" && keyword != "") { // 검색일때
+			int totalCount =memberDao.countSearchMember(type, keyword);
+			pageVO.setTotalCount(totalCount);
+			List<MemberDto> list = memberDao.selectAdminMemberList(type, keyword, pageVO);
+			return new PageResponseVO<>(list, pageVO);
+		} else { // 검색이 아닐때
+			int totalCount =memberDao.countMember();
+			pageVO.setTotalCount(totalCount);
+			List<MemberDto> list = memberDao.selectListExceptAdmin(pageVO);
+			return new PageResponseVO<>(list, pageVO);
+		}
 	}
+	
 	
 	//회원 상세 조회
 	@GetMapping("/members/{memberId}")
