@@ -1,0 +1,93 @@
+package com.kh.finalproject.dao;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.kh.finalproject.dto.BoardDto;
+import com.kh.finalproject.vo.PageVO;
+
+@Repository
+public class BoardDao {
+
+	@Autowired
+	private SqlSession sqlSession;
+	
+	// 등록
+	public int insert(BoardDto boardDto) {
+		int boardNo = sqlSession.selectOne("board.sequence");
+		boardDto.setBoardNo(boardNo);
+		sqlSession.insert("board.insert",boardDto);
+		return boardNo;
+	}
+	
+	// 조회 : 전체 조회
+	public List<BoardDto> selectList(){
+		return sqlSession.selectList("board.selectList");
+	}
+	// 조회 : 전체 조회 (페이지네이션)
+	public List<BoardDto> selectListWithPage(PageVO pageVO){
+		return sqlSession.selectList("board.selectListWithPage", pageVO);
+	}
+	public int countBoard() {
+		return sqlSession.selectOne("board.countBoard");
+	}
+	
+	
+	// 조회 : 컨텐츠별 조회
+	// - 페이지네이션 O
+	public List<BoardDto> selectListByContents(Long boardContentsId,PageVO pageVO){
+		Map<String, Object> param = new HashMap<>();
+		param.put("boardContentsId", boardContentsId);
+		param.put("pageVO", pageVO);
+		return sqlSession.selectList("board.selectListByContents", param);
+	}
+	public int countContentsBoard(long boardContentsId) {
+		return sqlSession.selectOne("board.countContentsBoard", boardContentsId);
+	}
+	
+	// 조회 : 컨텐츠별 5개 항목조회
+	// - contents detail 적용 / 페이지네이션 X
+	public List<BoardDto> selectListBy5Contents(Long boardContentsId){
+		return sqlSession.selectList("board.selectListBy5Contents", boardContentsId);
+	}
+	
+	// 상세조회
+	public BoardDto selectOne(int boardNo) {
+		return sqlSession.selectOne("board.detail", boardNo);
+	}
+	
+	// 수정
+	public boolean update(BoardDto boardDto) {
+		return sqlSession.update("board.update",boardDto)>0;
+	}
+	
+	// 삭제
+	public void delete(int boardNo) {
+		sqlSession.delete("board.delete", boardNo);
+	}
+	
+	
+	////////////////////첨부파일
+	public void connect(int boardNo, int attachmentNo) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("boardNo", boardNo);
+		params.put("attachmentNo", attachmentNo);
+		
+		sqlSession.insert("board.connect", params);
+	}
+	public int findAttachment(int boardNo) {
+		return sqlSession.selectOne("board.findAttachment", boardNo);
+	}
+	
+	//조회수
+	public int increaseViewCount(int boardNo) {
+		sqlSession.update("board.increaseViewCount", boardNo);
+		return sqlSession.selectOne("board.selectViewCount", boardNo);
+	}
+	
+}

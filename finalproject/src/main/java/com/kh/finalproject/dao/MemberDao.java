@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.vo.PageVO;
 
 @Repository
 public class MemberDao {
@@ -41,6 +42,31 @@ public class MemberDao {
 		public MemberDto selectOneByMemberNickname(String memberNickname) {
 			return sqlSession.selectOne("member.detailByNickname", memberNickname);
 		}
+		//관리자 제외하고 조회
+		public List<MemberDto> selectListExceptAdmin(PageVO pageVO){
+			return sqlSession.selectList("member.selectListExceptAdmin", pageVO);
+		}
+		public int countMember() {
+			return sqlSession.selectOne("member.countMember");
+		}
+		//회원검색
+		public List<MemberDto> selectAdminMemberList(String type, String keyword, PageVO pageVO) {
+		    Map<String, Object> params = new HashMap<>();
+		    params.put("pageVO", pageVO);
+		    params.put("type", type);
+		    params.put("keyword", keyword);
+		    return sqlSession.selectList("member.selectAdminList", params);
+		}
+		public int countSearchMember(String type, String keyword) {
+		    Map<String, Object> params = new HashMap<>();
+		    params.put("type", type);
+		    params.put("keyword", keyword);
+			return sqlSession.selectOne("member.countSearchMember", params);
+		}
+		
+		
+		
+		
 	
 	/// 수정
 		//(회원기본정보 수정)
@@ -71,6 +97,10 @@ public class MemberDao {
 		//(신뢰도 갱신)
 		public boolean updateReliability(MemberDto memberDto) {
 			return sqlSession.update("member.updateReliability", memberDto) > 0 ;
+		}
+		//(회원등급 수정)
+		public boolean updateMemberLevel(MemberDto memberDto) {
+			return sqlSession.update("member.updateMemberLevel", memberDto) > 0;
 		}
 
 	/// 삭제 (회원탈퇴)

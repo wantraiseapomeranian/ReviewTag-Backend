@@ -26,6 +26,12 @@ public class ErrorRestControllerAdvice {
 			return ResponseEntity.status(401).build(); // 401
 		}
 		
+		@ExceptionHandler(NotEnoughHeartException.class)
+		public ResponseEntity<String> handleNotEnoughHeart(NotEnoughHeartException e) {
+			
+		    return ResponseEntity.status(402).body(e.getMessage());
+		}
+		
 		@ExceptionHandler(NeedPermissionException.class)
 		public ResponseEntity<String> needPermission(NeedPermissionException e) {
 			return ResponseEntity.status(403).build(); // 403

@@ -67,10 +67,13 @@ public class QuizRestController {
 	
 	//퀴즈 상세정보 조회
 	@GetMapping("/{quizId}")
-	public QuizDto detail(@PathVariable long quizId
+	public QuizDto detail(@PathVariable long quizId,
+			@RequestAttribute TokenVO tokenVO
 			) {
-		
-		return quizService.getQuizDetail(quizId);
+		String loginId = tokenVO.getLoginId();
+		String loginLevel = tokenVO.getLoginLevel();
+		System.out.println("실행중"); 
+		return quizService.getQuizDetail(quizId, loginId, loginLevel);
 	}
 	
 	//퀴즈 수정
@@ -94,7 +97,7 @@ public class QuizRestController {
 		
 		String loginId = tokenVO.getLoginId();
 		String loginLevel = tokenVO.getLoginLevel();
-
+		
 		
 		return quizService.changeQuizStatus(quizDto, loginId, loginLevel);
 	}

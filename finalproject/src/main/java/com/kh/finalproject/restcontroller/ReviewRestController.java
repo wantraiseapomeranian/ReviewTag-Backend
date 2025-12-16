@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,12 +70,12 @@ public class ReviewRestController {
 	}
 
 	// 수정
-	@PatchMapping("/{reviewNo}")
-	public void updateUnit(@RequestBody ReviewDto reviewDto, @PathVariable Long reviewNo) {
-		ReviewDto originDto = reviewDao.selectOne(reviewNo);
-		if (originDto == null)
-			throw new TargetNotfoundException();
+	@PatchMapping("/{reviewContents}/{reviewNo}")
+	public void updateUnit(@RequestBody ReviewDto reviewDto, 
+			@PathVariable Long reviewContents,
+			@PathVariable Long reviewNo) {
 
+		reviewDto.setReviewContents(reviewContents);
 		reviewDto.setReviewNo(reviewNo);
 
 		boolean success = reviewDao.updateUnit(reviewDto);

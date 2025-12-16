@@ -17,13 +17,14 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         
         // 1. 로그인 검사 인터셉터 (회원 전용 기능 보호)
-        registry.addInterceptor(memberInterceptor)
+         registry.addInterceptor(memberInterceptor)
             .addPathPatterns(
                 "/member/logout",      // 로그아웃
                 "/point/**",
                 "/content/**",
                 "/quiz/**",
-                "/admin/**"
+                "/admin/**",
+                "/heart/**"
 //                "/review/**"
                 // contents 북마크 기능만 추가 나머지 컨텐츠 관련 부분 로그인 없이 허용                
                 // 포인트 관련 전체 (/point/history 등)

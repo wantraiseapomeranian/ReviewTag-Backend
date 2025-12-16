@@ -17,6 +17,9 @@ public class QuizService {
 	@Autowired
 	private QuizDao quizDao;
 	
+	@Autowired
+	private HeartService heartService;
+	
 	//퀴즈 등록
 	//추후 퀴즈 등록 시 포인트 지급이 필요한 경우 추가 로직 작성이 필요함
 	@Transactional
@@ -25,17 +28,20 @@ public class QuizService {
     }
 	
 	//랜덤 5문제 출제
-	//추후 quizLogService에 트랜잭션 처리 예정
+	@Transactional
 	public List<QuizDto> getQuizGame(long contentsId, String memberId) {
 		
 		//로그인 상태 검사
 		if(memberId == null) throw new NeedPermissionException("로그인이 필요합니다.");
 		
+		//하트 차감
+		heartService.useHeartForQuiz(memberId);
+		
+		//문제 출제
         return quizDao.selectRandomQuizList(contentsId, memberId);
     }
 	
 	//퀴즈 삭제 (상태만 변경)
-	//추후 통계를 위해 delete 하는것 보다는 상태만 변경하여 숨김 처리 구현 예정
     public boolean deleteQuiz(long quizId, String memberId, String memberLevel) {
     	//퀴즈 조회
     	QuizDto origin = quizDao.selectOne(quizId);
@@ -80,13 +86,16 @@ public class QuizService {
     }
     
     //상세 조회
-    //추후 마이페이지에 들어갈 경우 Token 비교 로직 추가 예정
-    public QuizDto getQuizDetail(long quizId) {
+    public QuizDto getQuizDetail(long quizId, String loginId, String loginLevel) {
     	
     	//퀴즈 조회
     	QuizDto findDto = quizDao.selectOne(quizId);
 		if(findDto == null) throw new TargetNotfoundException("존재하지 않는 퀴즈입니다.");
     	
+		boolean isOwner = findDto.getQuizCreatorId().equals(loginId);
+		boolean isAdmin = "관리자".equals(loginLevel);
+    	if(!isOwner && !isAdmin) throw new NeedPermissionException();
+		
     	return findDto;
     }
     
