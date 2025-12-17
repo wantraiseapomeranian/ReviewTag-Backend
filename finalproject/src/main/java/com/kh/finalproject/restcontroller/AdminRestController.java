@@ -1,6 +1,8 @@
 package com.kh.finalproject.restcontroller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,12 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.finalproject.dao.MemberDao;
 import com.kh.finalproject.dao.MemberTokenDao;
+import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.dto.MemberDto;
 import com.kh.finalproject.dto.QuizDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AdminService;
 import com.kh.finalproject.service.QuizService;
 import com.kh.finalproject.service.TokenService;
+import com.kh.finalproject.vo.PageResponseVO;
+import com.kh.finalproject.vo.PageVO;
 import com.kh.finalproject.vo.QuizReportDetailVO;
 import com.kh.finalproject.vo.QuizReportStatsVO;
 import com.kh.finalproject.vo.TokenVO;
@@ -48,13 +53,27 @@ public class AdminRestController {
 	
 	//회원 목록 조회(관리자 제외)
 	@GetMapping("/members") 
-	public List<MemberDto> getMemberList(
+	public PageResponseVO  getMemberList(
+			@RequestParam int page,
 			@RequestParam(required = false) String type, 
 			@RequestParam(required = false) String keyword
 			){
+		PageVO pageVO = new PageVO();
+		pageVO.setPage(page);
 		
-		return memberDao.selectAdminMemberList(type, keyword);
+		if(type != "" && keyword != "") { // 검색일때
+			int totalCount =memberDao.countSearchMember(type, keyword);
+			pageVO.setTotalCount(totalCount);
+			List<MemberDto> list = memberDao.selectAdminMemberList(type, keyword, pageVO);
+			return new PageResponseVO<>(list, pageVO);
+		} else { // 검색이 아닐때
+			int totalCount =memberDao.countMember();
+			pageVO.setTotalCount(totalCount);
+			List<MemberDto> list = memberDao.selectListExceptAdmin(pageVO);
+			return new PageResponseVO<>(list, pageVO);
+		}
 	}
+	
 	
 	//회원 상세 조회
 	@GetMapping("/members/{memberId}")
@@ -99,12 +118,24 @@ public class AdminRestController {
 	@GetMapping("/quizzes/reports")
 	public List<QuizReportStatsVO> getReportList(
 			@RequestParam String status,
-			@RequestAttribute TokenVO tokenVO
+			@RequestAttribute TokenVO tokenVO,
+			@RequestParam(defaultValue = "1") Integer page
 			) {
-		
+    	int size = 2; // 한 페이지당 보여줄 개수 
+        
+        // Oracle 페이징 계산 (1페이지: 1~12, 2페이지: 13~24 ...)
+        int end = page * size;
+        int start = end - (size - 1);
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", start);
+        params.put("end", end);
+        
 		String loginLevel = tokenVO.getLoginLevel();
-		
-		return adminService.getReportedQuizList(loginLevel, status);
+		params.put("loginLevel", loginLevel);
+		params.put("status", status);
+		 List<QuizReportStatsVO> list = adminService.getReportedQuizList(params);
+		return list;
 	}
 	//퀴즈 신고 상세 내역 페이지
 	@GetMapping("/quizzes/{quizId}/reports")

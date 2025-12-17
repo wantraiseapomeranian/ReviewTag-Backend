@@ -1,6 +1,7 @@
 package com.kh.finalproject.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,13 +18,14 @@ public class AdminService {
 	private QuizReportDao quizReportDao;
 	
 	//신고된 퀴즈 목록 조회
-	public List<QuizReportStatsVO> getReportedQuizList(String loginLevel, String status){
+	public List<QuizReportStatsVO> getReportedQuizList(Map<String, Object> params){
 		
 		//관리자인지 검사
+		String loginLevel = (String) params.get("loginLevel");
 		if(loginLevel == null || !"관리자".equals(loginLevel))
 			throw new NeedPermissionException();
 		
-		return quizReportDao.selectReportedQuizList(status);
+		return quizReportDao.selectReportedQuizList(params);
 	}
 	
 	//신고 상세 내역 조회(신고 종류가 기타일때만)

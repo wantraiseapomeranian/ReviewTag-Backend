@@ -160,7 +160,7 @@ public class BoardRestController {
 	
 	
 	// 게시글 삭제
-	@DeleteMapping("/boardNo/{boardNo}")
+	@DeleteMapping("/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
 		BoardDto boardDto = boardDao.selectOne(boardNo);
 		if(boardDto == null) throw new TargetNotfoundException("존재하지 않는 글");
