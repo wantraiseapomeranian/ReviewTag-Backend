@@ -68,6 +68,11 @@ public class ReviewDao {
 		map3.put("reviewNo", reviewNo);
 		return sqlSession.delete("review.delete", map3) > 0;
 	}
+
+	//리뷰 쓴사람 조회
+	public String findWriterByReviewNo(Long reviewNo) {
+		return sqlSession.selectOne("review.findWriterByReviewNo", reviewNo);
+	}
 	
 	
 	//////////////////////////////////////////

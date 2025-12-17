@@ -70,10 +70,16 @@
 	
 	<!-- 신고된 퀴즈 목록 조회 -->
 	<select id="selectQuizReportList" resultType="QuizReportStatsVO">
+            select * from (
+        select rownum rn, TMP.* from (
         select * from view_quiz_report_stats
         <where>
             <if test="status == 'active'">
-                and quiz_status in ('ACTIVE', 'BLIND')
+                and quiz_status in ('ACTIVE')
+            </if>
+            
+            <if test="status == 'blind'">
+                and quiz_status in ('BLIND')
             </if>
             
             <if test="status == 'deleted'">
@@ -81,6 +87,8 @@
             </if>
         </where>
         order by last_reported_at desc
+                ) TMP
+    ) where rn between #{start} and #{end}
     </select>
 	
 	<!-- 상세 신고 사유 조회 -->

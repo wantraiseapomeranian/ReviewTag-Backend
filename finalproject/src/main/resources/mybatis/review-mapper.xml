@@ -77,9 +77,12 @@
 		review_no = #{reviewNo}
 	</delete>
 	
+	<!-- 리뷰 쓴사람 조회 -->
+	<select id="findWriterByReviewNo" resultType="String">
+		select review_writer from review where review_no = ${reviewNo}
+	</select>
 
 	<!-- 좋아요 관련 -->
-	
 	<update id="updateReviewLike">
 		update review set review_like = (
 				select count(*) from review_like where review_no = #{reviewNo}

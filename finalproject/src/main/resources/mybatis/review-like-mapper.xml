@@ -28,6 +28,11 @@
  		delete review_like where member_id = #{memberId} and review_no = #{reviewNo}
  	</delete>
  	
+	<!-- 좋아요 신뢰도 기능 -->
+ 	<select id="countTotalLikeByWriter" resultType="int">
+ 		select count(*) from review_like A join review B on A.review_no = B.review_no
+ 		where B.review_writer = #{writer}
+ 	</select>
  	
  
  </mapper>

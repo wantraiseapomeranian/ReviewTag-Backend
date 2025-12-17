@@ -1,14 +1,27 @@
 package com.kh.finalproject.restcontroller;
 
-import java.io.IOException;
-import java.util.List;
 
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,16 +30,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.finalproject.dao.BoardDao;
 import com.kh.finalproject.dao.BoardResponseDao;
-
-
+import com.kh.finalproject.dao.ReplyDao;
 import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.dto.BoardResponseDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AttachmentService;
+
 import com.kh.finalproject.service.DailyQuestService;
+
 import com.kh.finalproject.vo.BoardResponseVO;
 import com.kh.finalproject.vo.PageResponseVO;
 import com.kh.finalproject.vo.PageVO;
+import com.kh.finalproject.vo.TokenVO;
+
+import jakarta.servlet.http.HttpSession;
 
 
 @CrossOrigin
@@ -41,7 +58,12 @@ public class BoardRestController {
 	@Autowired
 	private BoardResponseDao boardResponseDao;
 	@Autowired
+
 	private DailyQuestService dailyQuestService;
+
+	private ReplyDao replyDao;
+	
+
 	// 게시글 등록
 	@PostMapping("/")
 	public void insert(@RequestBody BoardDto boardDto) {
@@ -91,10 +113,12 @@ public class BoardRestController {
 		List<BoardDto> list = boardDao.selectListWithPage(pageVO);
 		return new PageResponseVO<>(list, pageVO);
 	}
+
 		
 	//상세 조회
 	@GetMapping("/{boardNo}")
 	public BoardDto selectOne(@PathVariable int boardNo) {
+		replyDao.updateBoardReplyCount(boardNo);
 		return boardDao.selectOne(boardNo);
 	}
 	
@@ -116,9 +140,55 @@ public class BoardRestController {
 	}
 	
 	
+	// 게시글 수정
+	@PutMapping("/{boardNo}")
+	public void update(@PathVariable int boardNo, @RequestBody BoardDto boardDto) {
+		BoardDto beforeDto = boardDao.selectOne(boardNo);
+		if(boardDto == null) throw new TargetNotfoundException("존재하지 않는 글");
+		
+		Set<Integer> before = new HashSet<>();
+		Document beforeDocument = Jsoup.parse(beforeDto.getBoardText());
+		Elements beforeElements = beforeDocument.select(".custom-image");
+		for(Element element : beforeElements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			before.add(attachmentNo);
+		}
+		
+		Set<Integer> after = new HashSet<>();
+		Document afterDocument = Jsoup.parse(boardDto.getBoardText());
+		Elements afterElements = afterDocument.select(".custom-image");
+		for(Element element : afterElements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			after.add(attachmentNo);
+		}
+		
+		Set<Integer> minus = new HashSet<>(before);
+		minus.removeAll(after);
+		
+		
+		for(int attachmentNo : minus) {
+			attachmentService.delete(attachmentNo);
+		}
+		
+		boardDto.setBoardNo(boardNo);
+		boardDao.update(boardDto);
+		
+	}
+	
+	
 	// 게시글 삭제
 	@DeleteMapping("/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
+		BoardDto boardDto = boardDao.selectOne(boardNo);
+		if(boardDto == null) throw new TargetNotfoundException("존재하지 않는 글");
+		
+		Document document = Jsoup.parse(boardDto.getBoardText());
+		Elements elements = document.select(".cutom-image");
+		for(Element element : elements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			attachmentService.delete(attachmentNo);
+		}
+		
 		boardDao.delete(boardNo);
 	}
 	
@@ -186,4 +256,38 @@ public class BoardRestController {
 			.build();
 	}
 	
+	
+    // 서버 메모리에서 로그인ID 기준 조회 기록 저장
+    private final ConcurrentHashMap<String, ConcurrentHashMap<Integer, Long>> viewHistoryMap = new ConcurrentHashMap<>();
+    private final long limitTime = 24 * 60 * 60 * 1000; // 24시간
+    
+	// 조회수 증가 로직 구현
+	@PostMapping("/viewUpdate/{boardNo}")
+	public void increaseViewCount(@RequestAttribute TokenVO tokenVO,
+												@PathVariable int boardNo,
+												HttpSession session) {
+		if(tokenVO == null) return;
+		String loginId = tokenVO.getLoginId();
+		long now = System.currentTimeMillis();
+		
+        // 로그인ID별 조회 기록 Map 가져오기
+		// - 세션을 이용할시 요청시 세션이 달라지는 문제
+		// - 세션id를 발급해서 프론트에 전달할시, 로그인을 새로할때마다 갱신되는 문제
+		// -> 서버 메모리에 임시 저장하여 중복검사
+        ConcurrentHashMap<Integer, Long> userHistory =
+                viewHistoryMap.computeIfAbsent(loginId, k -> new ConcurrentHashMap<>());
+        Long lastViewed = userHistory.get(boardNo);
+        System.out.println("lastViewed"+lastViewed);
+        if (lastViewed != null && now - lastViewed < limitTime) { // 중복조회면 return
+        	System.out.println("중복된 값이 존재");
+        	return;
+        }
+        userHistory.put(boardNo, now); // 조회 기록 갱신
+
+        // 오래된 기록 정리 (24시간 이상 지난 기록 삭제)
+        userHistory.entrySet().removeIf(e -> now - e.getValue() > limitTime);
+        boardDao.increaseViewCount(boardNo);
+        System.out.println("조회수 증가 성공");
+    }
+
 }

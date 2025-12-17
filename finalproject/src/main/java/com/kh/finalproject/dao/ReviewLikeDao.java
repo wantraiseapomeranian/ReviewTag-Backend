@@ -48,4 +48,9 @@ public class ReviewLikeDao {
 		return sqlSession.selectList("reviewLike.selectListByMemberId", memberId);
 	} 
 	
+//	좋아요 신뢰도
+	public int countTotalLikeByWriter (String writer) {
+		return sqlSession.selectOne("reviewLike.countTotalLikeByWriter", writer);
+	}
+	
 }

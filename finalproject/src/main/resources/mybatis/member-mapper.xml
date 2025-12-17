@@ -125,10 +125,23 @@
 		where member_id=#{memberId}
 	</update>
 	
-	<update id="updateReliabilty">
+	<update id="updateReliability">
 		update member
-		set member_reliability=#{memberReliability}
+		set member_reliability = member_reliability + #{rel}
 		where member_id=#{memberId}
+	</update>
+	
+	<!-- 좋아요 신뢰도 구문 -->
+	<update id="updateReliabilitySet">
+		update member
+		set member_reliability = #{rel} <!-- 기존 값 무시하고 덮어씀 -->
+		where member_id=#{memberId}
+	</update>
+	
+	<update id="deleteReliability">
+		update member
+		set member_reliability = member_reliability - #{rel}
+		where member_id = #{memberId}
 	</update>
 	
 	<update id="updateMemberLevel">
