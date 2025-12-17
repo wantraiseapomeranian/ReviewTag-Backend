@@ -23,7 +23,7 @@ import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.dto.BoardResponseDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.AttachmentService;
-
+import com.kh.finalproject.service.DailyQuestService;
 import com.kh.finalproject.vo.BoardResponseVO;
 import com.kh.finalproject.vo.PageResponseVO;
 import com.kh.finalproject.vo.PageVO;
@@ -40,7 +40,8 @@ public class BoardRestController {
 	private AttachmentService attachmentService;
 	@Autowired
 	private BoardResponseDao boardResponseDao;
-	
+	@Autowired
+	private DailyQuestService dailyQuestService;
 	// 게시글 등록
 	@PostMapping("/")
 	public void insert(@RequestBody BoardDto boardDto) {
@@ -165,6 +166,7 @@ public class BoardRestController {
 			
 		} else {// 좋아요나 싫어요 안한 상태면
 			boardResponseDao.insert(boardResponseDto);
+			dailyQuestService.questProgress(boardResponseDto.getMemberId(), "LIKE");
 		}
 
 		int likeCount = boardResponseDao.countLikeByboardNo(boardResponseDto.getBoardNo());
