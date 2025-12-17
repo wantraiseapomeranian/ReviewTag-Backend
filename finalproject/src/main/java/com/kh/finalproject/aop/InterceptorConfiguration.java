@@ -31,8 +31,10 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
                 // "/point/store/**"   // 위 /point/** 가 이미 포함하므로 생략 가능
             )
             .excludePathPatterns(
-                "/point/store/"        // ★ 상품 목록 조회는 로그인 없이 허용
-//            	"/review/list/**"	
+                "/point/store/",       // ★ 상품 목록 조회는 로그인 없이 허용
+                "/ranking/**",
+                "/quiz/log/list/ranking/**"
+            	//"/review/list/**"	
             );
         
         // 2. 토큰 재발급 인터셉터 (로그인 연장)
