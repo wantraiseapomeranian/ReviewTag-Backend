@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -246,6 +247,11 @@ public class BoardRestController {
 			.build();
 	}
 	
+	
+    // 서버 메모리에서 로그인ID 기준 조회 기록 저장
+    private final ConcurrentHashMap<String, ConcurrentHashMap<Integer, Long>> viewHistoryMap = new ConcurrentHashMap<>();
+    private final long limitTime = 24 * 60 * 60 * 1000; // 24시간
+    
 	// 조회수 증가 로직 구현
 	@PostMapping("/viewUpdate/{boardNo}")
 	public void increaseViewCount(@RequestAttribute TokenVO tokenVO,
@@ -254,28 +260,25 @@ public class BoardRestController {
 		if(tokenVO == null) return;
 		String loginId = tokenVO.getLoginId();
 		long now = System.currentTimeMillis();
-		long limitTime = 24 * 60 * 60 * 1000;
 		
-		 ///세션에서 loginId-boardNo 중복여부 검사
-		 // 세션에서 전체 조회 기록맵 꺼내기
-		 // - Set으로 설정하는 이유는 회원 1명이 여러 게시글번호를 조회할수 있기 때문
-		 Map<String, Map<Integer, Long>> viewHistory = (Map<String, Map<Integer, Long>>) session.getAttribute("viewHistory");
-		 if(viewHistory == null) { // 값이 없으면(null)이면, 새로운 Map 생성
-			 viewHistory = new HashMap<>();
-		 }
-		 // 해당 유저 조회 기록 
-	    Map<Integer, Long> userHistory = viewHistory.computeIfAbsent(loginId, k -> new HashMap<>());
-	    Long lastViewed = userHistory.get(boardNo);
-	    if (lastViewed != null && now-lastViewed <limitTime) {
-	        return;
-	    }
-	    userHistory.put(boardNo, now);
-	    // 1일 지난 기록 정리
-			    userHistory.entrySet().removeIf(
-			        e -> now - e.getValue() > limitTime
-			    );
-	    session.setAttribute("viewHistory", viewHistory);
-		boardDao.increaseViewCount(boardNo);
-	}
+        // 로그인ID별 조회 기록 Map 가져오기
+		// - 세션을 이용할시 요청시 세션이 달라지는 문제
+		// - 세션id를 발급해서 프론트에 전달할시, 로그인을 새로할때마다 갱신되는 문제
+		// -> 서버 메모리에 임시 저장하여 중복검사
+        ConcurrentHashMap<Integer, Long> userHistory =
+                viewHistoryMap.computeIfAbsent(loginId, k -> new ConcurrentHashMap<>());
+        Long lastViewed = userHistory.get(boardNo);
+        System.out.println("lastViewed"+lastViewed);
+        if (lastViewed != null && now - lastViewed < limitTime) { // 중복조회면 return
+        	System.out.println("중복된 값이 존재");
+        	return;
+        }
+        userHistory.put(boardNo, now); // 조회 기록 갱신
+
+        // 오래된 기록 정리 (24시간 이상 지난 기록 삭제)
+        userHistory.entrySet().removeIf(e -> now - e.getValue() > limitTime);
+        boardDao.increaseViewCount(boardNo);
+        System.out.println("조회수 증가 성공");
+    }
 
 }
