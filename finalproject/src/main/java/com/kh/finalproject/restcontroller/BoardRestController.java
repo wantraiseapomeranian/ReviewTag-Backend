@@ -1,5 +1,7 @@
 package com.kh.finalproject.restcontroller;
 
+
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,12 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.finalproject.dao.BoardDao;
 import com.kh.finalproject.dao.BoardResponseDao;
+import com.kh.finalproject.dao.ReplyDao;
 import com.kh.finalproject.dto.BoardDto;
 import com.kh.finalproject.dto.BoardResponseDto;
 import com.kh.finalproject.error.TargetNotfoundException;
@@ -45,6 +53,8 @@ public class BoardRestController {
 	private AttachmentService attachmentService;
 	@Autowired
 	private BoardResponseDao boardResponseDao;
+	@Autowired
+	private ReplyDao replyDao;
 	
 	// 게시글 등록
 	@PostMapping("/")
@@ -99,6 +109,7 @@ public class BoardRestController {
 	//상세 조회
 	@GetMapping("/{boardNo}")
 	public BoardDto selectOne(@PathVariable int boardNo) {
+		replyDao.updateBoardReplyCount(boardNo);
 		return boardDao.selectOne(boardNo);
 	}
 	
@@ -120,9 +131,55 @@ public class BoardRestController {
 	}
 	
 	
+	// 게시글 수정
+	@PutMapping("/{boardNo}")
+	public void update(@PathVariable int boardNo, @RequestBody BoardDto boardDto) {
+		BoardDto beforeDto = boardDao.selectOne(boardNo);
+		if(boardDto == null) throw new TargetNotfoundException("존재하지 않는 글");
+		
+		Set<Integer> before = new HashSet<>();
+		Document beforeDocument = Jsoup.parse(beforeDto.getBoardText());
+		Elements beforeElements = beforeDocument.select(".custom-image");
+		for(Element element : beforeElements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			before.add(attachmentNo);
+		}
+		
+		Set<Integer> after = new HashSet<>();
+		Document afterDocument = Jsoup.parse(boardDto.getBoardText());
+		Elements afterElements = afterDocument.select(".custom-image");
+		for(Element element : afterElements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			after.add(attachmentNo);
+		}
+		
+		Set<Integer> minus = new HashSet<>(before);
+		minus.removeAll(after);
+		
+		
+		for(int attachmentNo : minus) {
+			attachmentService.delete(attachmentNo);
+		}
+		
+		boardDto.setBoardNo(boardNo);
+		boardDao.update(boardDto);
+		
+	}
+	
+	
 	// 게시글 삭제
 	@DeleteMapping("/{boardNo}")
 	public void delete(@PathVariable int boardNo) {
+		BoardDto boardDto = boardDao.selectOne(boardNo);
+		if(boardDto == null) throw new TargetNotfoundException("존재하지 않는 글");
+		
+		Document document = Jsoup.parse(boardDto.getBoardText());
+		Elements elements = document.select(".cutom-image");
+		for(Element element : elements) {
+			int attachmentNo = Integer.parseInt(element.attr("data-pk"));
+			attachmentService.delete(attachmentNo);
+		}
+		
 		boardDao.delete(boardNo);
 	}
 	
