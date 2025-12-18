@@ -1,6 +1,8 @@
 package com.kh.finalproject.restcontroller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -116,12 +118,24 @@ public class AdminRestController {
 	@GetMapping("/quizzes/reports")
 	public List<QuizReportStatsVO> getReportList(
 			@RequestParam String status,
-			@RequestAttribute TokenVO tokenVO
+			@RequestAttribute TokenVO tokenVO,
+			@RequestParam(defaultValue = "1") Integer page
 			) {
-		
+    	int size = 2; // 한 페이지당 보여줄 개수 
+        
+        // Oracle 페이징 계산 (1페이지: 1~12, 2페이지: 13~24 ...)
+        int end = page * size;
+        int start = end - (size - 1);
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", start);
+        params.put("end", end);
+        
 		String loginLevel = tokenVO.getLoginLevel();
-		
-		return adminService.getReportedQuizList(loginLevel, status);
+		params.put("loginLevel", loginLevel);
+		params.put("status", status);
+		 List<QuizReportStatsVO> list = adminService.getReportedQuizList(params);
+		return list;
 	}
 	//퀴즈 신고 상세 내역 페이지
 	@GetMapping("/quizzes/{quizId}/reports")
