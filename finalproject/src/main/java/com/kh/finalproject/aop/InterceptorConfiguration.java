@@ -20,6 +20,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         
     	registry.addInterceptor(tokenParsingInterceptor)
     	.addPathPatterns(
+    			"/board/**",
     			"/board/viewUpdate/**");
     	
     	
@@ -32,8 +33,8 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
                 "/content/**",
                 "/quiz/**",
                 "/admin/**",
-                "/heart/**"
-//                "/review/**"
+                "/heart/**",
+                "/review/report/**"
                 // contents 북마크 기능만 추가 나머지 컨텐츠 관련 부분 로그인 없이 허용                
                 // 포인트 관련 전체 (/point/history 등)
                 // "/point/store/**"   // 위 /point/** 가 이미 포함하므로 생략 가능

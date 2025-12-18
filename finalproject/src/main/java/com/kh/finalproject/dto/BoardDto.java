@@ -26,6 +26,8 @@ public class BoardDto {
 	private int boardUnlike;
 	private int boardReplyCount;
 	private String boardNotice;
+	private int boardReportCount;
+	
 	private List<Integer> attachmentNoList;
  
 }

@@ -52,9 +52,10 @@ public class QuizLogService {
 				correctCount++;
 			}
 		}
+		int getPoint = 20; // 정답별 획득 포인트배율
 		
 		//correctCount에 따라 포인트 지급 로직 호출 구현 예정
-		pointService.addPoint(memberId, correctCount, "GET");
+		pointService.addPoint(memberId, correctCount*getPoint, "GET");
 		
 		return correctCount; //정답 개수를 int로 반환
 	}

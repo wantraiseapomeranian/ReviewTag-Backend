@@ -1,9 +1,5 @@
 package com.kh.finalproject.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +9,7 @@ import com.kh.finalproject.dao.ReviewDao;
 import com.kh.finalproject.dao.ReviewLikeDao;
 import com.kh.finalproject.dto.ReviewDto;
 import com.kh.finalproject.error.TargetNotfoundException;
+import com.kh.finalproject.vo.ReviewVO;
 
 @Service
 public class ReviewService {
@@ -25,47 +22,63 @@ public class ReviewService {
 	private ReviewLikeDao reviewLikeDao;
 
 	@Transactional
-    public void addReview(ReviewDto reviewDto) {
-        // 1. 중복 체크 (이미 쓴 리뷰가 있는지 확인)
-        // 기존에 있는 selectByUserAndContents 메소드를 활용합니다.
-        ReviewDto findDto = reviewDao.selectByUserAndContents(
-                reviewDto.getReviewWriter(), 
-                reviewDto.getReviewContents()
-        );
+	// 리뷰 작성시 신뢰도 +1
+	public void addReview(ReviewDto reviewDto) {
+		reviewDao.insert(reviewDto);
+		String writer = reviewDto.getReviewWriter();
 
-        if (findDto != null) {
-            // 이미 리뷰가 존재하면 에러를 발생시켜 중단 (또는 return으로 조용히 종료)
-            throw new IllegalStateException("이미 이 콘텐츠에 리뷰를 작성하셨습니다.");
-        }
-
-        // 2. 리뷰 등록 (DAO 호출은 여기서만!)
-        reviewDao.insert(reviewDto);
-
-        // 3. 작성자 신뢰도 +1
-        String writer = reviewDto.getReviewWriter();
-        memberDao.updateReliability(writer, 1);
-    }
+		memberDao.updateReliability(writer, 1);
+	}
 
 	// 리뷰 삭제시 신뢰도 -1
+	@Transactional
 	public void deleteReview(Long reviewContents, Long reviewNo) {
-		
-	    ReviewDto review = reviewDao.selectOne(reviewContents, reviewNo);
-	    if (review == null) {
-	        throw new TargetNotfoundException();
-	    }
-	    
-	    String writer = review.getReviewWriter();
-	    memberDao.updateReliability(writer, -1);
+		ReviewVO review = reviewDao.selectOne(reviewContents, reviewNo);
+		if (review == null)
+			throw new TargetNotfoundException();
+
+		String writer = review.getReviewWriter();
+
+		int reliability = memberDao.selectReliability(writer);
+		if (reliability > 0) {
+			memberDao.updateReliability(writer, -1);
+		}
+
+		reviewDao.delete(reviewContents, reviewNo);
 	}
 	
+	// 리뷰 신고시 신뢰도 -1
+	@Transactional
+	public void reportReview(Long reviewNo) {
+		System.out.println("reviewNo------------"+reviewNo);
+		String writer = reviewDao.findWriterByReviewNo(reviewNo);
+		if (writer == null) throw new TargetNotfoundException();
+		int reliability = memberDao.selectReliability(writer);
+		if (reliability > 0) {
+			memberDao.updateReliability(writer, -1);
+		}
+	}
+	
+	
+
 	// 좋아요에 대한 신뢰도 갱신 (3좋아요 1신뢰도)
 	public void LikeReviewRel(Long reviewNo) {
 		String writer = reviewDao.findWriterByReviewNo(reviewNo);
-		int totalLike = reviewLikeDao.countTotalLikeByWriter(writer);
-		int reliability = totalLike/3;
-		
-		memberDao.updateReliabilitySet(writer, reliability);
-	}
 
+		int totalLike = reviewLikeDao.countTotalLikeByWriter(writer);
+		int likeReliability = totalLike / 3;
+//		System.out.println("총 좋아요 :"+totalLike); 
+//		System.out.println("좋아요가 3개일 시, 1신뢰도 값:"+likeReliability);
+
+		int reviewCount = reviewDao.countReviewByWriter(writer);
+//		System.out.println("총 리뷰 개수 :"+reviewCount); 
+
+		////////////////////////
+
+		int totalReliability = likeReliability + reviewCount;
+		System.out.println("총 신뢰도 :" + totalReliability);
+
+		memberDao.updateReliabilitySet(writer, totalReliability);
+	}
 
 }
