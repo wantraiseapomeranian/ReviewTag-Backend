@@ -46,6 +46,20 @@ public class ReviewService {
 
 		reviewDao.delete(reviewContents, reviewNo);
 	}
+	
+	// 리뷰 신고시 신뢰도 -1
+	@Transactional
+	public void reportReview(Long reviewNo) {
+		System.out.println("reviewNo------------"+reviewNo);
+		String writer = reviewDao.findWriterByReviewNo(reviewNo);
+		if (writer == null) throw new TargetNotfoundException();
+		int reliability = memberDao.selectReliability(writer);
+		if (reliability > 0) {
+			memberDao.updateReliability(writer, -1);
+		}
+	}
+	
+	
 
 	// 좋아요에 대한 신뢰도 갱신 (3좋아요 1신뢰도)
 	public void LikeReviewRel(Long reviewNo) {

@@ -20,4 +20,11 @@
 			#{reviewReportContent} )
 	</insert>
 
+	<!-- 전체 리뷰 신고 조회 -->
+	<select id = "selectList" resultType="reviewReportDto">
+		select * from review_report
+		order by review_report_date desc
+	</select>
+
+
 </mapper>
