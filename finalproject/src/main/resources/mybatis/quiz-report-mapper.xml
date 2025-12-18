@@ -75,7 +75,11 @@
         select * from view_quiz_report_stats
         <where>
             <if test="status == 'active'">
-                and quiz_status in ('ACTIVE', 'BLIND')
+                and quiz_status in ('ACTIVE')
+            </if>
+            
+            <if test="status == 'blind'">
+                and quiz_status in ('BLIND')
             </if>
             
             <if test="status == 'deleted'">
