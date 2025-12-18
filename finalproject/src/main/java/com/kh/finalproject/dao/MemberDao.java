@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.dto.MemberProfileDto;
 import com.kh.finalproject.vo.PageVO;
 
 @Repository
@@ -38,6 +39,10 @@ public class MemberDao {
 	// 상세조회
 	public MemberDto selectOne(String memberId) {
 		return sqlSession.selectOne("member.detail", memberId);
+	}
+	
+	public MemberProfileDto selectProfile(String memberId) {
+		return sqlSession.selectOne("member.selectProfile", memberId);
 	}
 
 	// 닉네임 중복 검사용 조회

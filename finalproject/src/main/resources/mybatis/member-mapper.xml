@@ -23,6 +23,10 @@
 		select * from member order by member_join desc
 	</select>
 	
+	<select id="selectProfile" resultType="memberProfileDto">
+		select * from member where member_id = #{memberId}
+	</select>
+	
 	<!-- 관리자 제외하고 조회 + 페이지네이션 -->
 	<select id="selectListExceptAdmin" resultType="memberDto">
 		select * from (

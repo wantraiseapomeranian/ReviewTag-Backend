@@ -21,6 +21,7 @@ import com.kh.finalproject.dao.MemberReviewDao;
 import com.kh.finalproject.dao.MemberTokenDao;
 import com.kh.finalproject.dao.MemberWatchDao;
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.dto.MemberProfileDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.error.UnauthorizationException;
 import com.kh.finalproject.service.TokenService;
@@ -78,6 +79,11 @@ public class MemberRestController {
 	@GetMapping("/")
 	public List<MemberDto> selectList(){
 		return memberDao.selectList();
+	}
+	
+	@GetMapping("/profile/{memberId}")
+	public MemberProfileDto selectProfile(@PathVariable String memberId) {
+		return memberDao.selectProfile(memberId);
 	}
 	
 	@GetMapping("/mypage/{loginId}")
