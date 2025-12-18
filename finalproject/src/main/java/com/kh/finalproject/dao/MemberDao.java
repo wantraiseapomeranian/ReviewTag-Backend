@@ -157,5 +157,8 @@ public class MemberDao {
 		public boolean adminUpdateMemberInfo(MemberDto memberDto) {
 			return sqlSession.update("member.adminUpdateMemberInfo", memberDto) > 0;
 		}
-    
+		// 현재 신뢰도 조회
+		public int selectReliability(String memberId) {
+			return sqlSession.selectOne("member.selectReliability", memberId);
+		}
 }
