@@ -51,12 +51,12 @@ public class ReviewService {
 		String writer = reviewDao.findWriterByReviewNo(reviewNo);
 
 		int totalLike = reviewLikeDao.countTotalLikeByWriter(writer);
-		int likeReliability = totalLike / 3; //총 좋아요/3 = 1신뢰도
+		int likeReliability = totalLike / 3; 
 		System.out.println("총 좋아요 :"+totalLike); 
-		System.out.println("좋아요가 3개일 시, 1신뢰도 값:"+likeReliability); //여기까진 문제없음
+		System.out.println("좋아요가 3개일 시, 1신뢰도 값:"+likeReliability);
 		
-		int reviewCount = reviewDao.countReviewByWriter(writer); // 리뷰 개수 조회
-		System.out.println("총 리뷰 개수 :"+reviewCount); //이것도 일치
+		int reviewCount = reviewDao.countReviewByWriter(writer); // 총 리뷰 개수
+//		System.out.println("총 리뷰 개수 :"+reviewCount); 
 
 		
 		////////////////////////
