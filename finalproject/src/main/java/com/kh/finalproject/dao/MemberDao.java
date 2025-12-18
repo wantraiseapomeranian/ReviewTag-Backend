@@ -126,10 +126,12 @@ public class MemberDao {
 		param.put("rel", rel);
 		sqlSession.update("member.updateReliabilitySet", param);
 	}
+
 	public MemberDto selectMap(String memberId) {
 	    return sqlSession.selectOne("member.selectMap", memberId);
 
 	}
+
 
 	// 현재 신뢰도 조회
 	public int selectReliability(String memberId) {
