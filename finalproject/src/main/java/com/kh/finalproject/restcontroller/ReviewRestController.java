@@ -26,55 +26,53 @@ import com.kh.finalproject.service.ReviewService;
 
 import com.kh.finalproject.vo.ReviewLikeVO;
 
-@CrossOrigin 
+@CrossOrigin
 @RestController
 @RequestMapping("/review")
 public class ReviewRestController {
 
-	@Autowired
-    private ReviewService reviewService;
+	private final ReviewService reviewService;
 	@Autowired
 	private ReviewDao reviewDao;
 	@Autowired
 	private ReviewLikeDao reviewLikeDao;
 
-    @Autowired
-    private DailyQuestService dailyQuestService;
+	@Autowired
+	private DailyQuestService dailyQuestService;
 
-
+	ReviewRestController(ReviewService reviewService) {
+		this.reviewService = reviewService;
+	}
 
 	// 등록
 	@PostMapping("/")
 	public void insert(@RequestBody ReviewDto reviewDto) {
+
+//		reviewDao.insert(reviewDto);
 		reviewService.addReview(reviewDto);
 		if (reviewDto.getReviewWriter() != null) {
-            dailyQuestService.questProgress(reviewDto.getReviewWriter(), "REVIEW");
+			dailyQuestService.questProgress(reviewDto.getReviewWriter(), "REVIEW");
+
 		}
 	}
-	
-	
+
 	// 전체 리뷰 조회
 	@GetMapping("/reviewContents/{reviewContents}")
 	public List<ReviewDto> selectByContents(@PathVariable Long reviewContents) {
 		return reviewDao.selectByContents(reviewContents);
 	}
 
-
-	
-	//로그인 리뷰 조회
+	// 로그인 리뷰 조회
 	@GetMapping("/user/{reviewContents}/{reviewWriter}")
-	public ReviewDto selectByUserAndContents(@PathVariable String reviewWriter,
-											@PathVariable Long reviewContents) {
+	public ReviewDto selectByUserAndContents(@PathVariable String reviewWriter, @PathVariable Long reviewContents) {
 		ReviewDto reviewDto = reviewDao.selectByUserAndContents(reviewWriter, reviewContents);
 		return reviewDto;
 	}
 
 	// 단일 리뷰 조회
 	@GetMapping("/{reviewContents}/{reviewNo}")
-	public ReviewDto selectOne(
-			@PathVariable Long reviewContents,
-			@PathVariable Long reviewNo) {
-		return reviewDao.selectOne(reviewContents,reviewNo);
+	public ReviewDto selectOne(@PathVariable Long reviewContents, @PathVariable Long reviewNo) {
+		return reviewDao.selectOne(reviewContents, reviewNo);
 	}
 
 	// 컨텐츠 아이디로 조회
@@ -88,8 +86,7 @@ public class ReviewRestController {
 
 	// 수정
 	@PatchMapping("/{reviewContents}/{reviewNo}")
-	public void updateUnit(@RequestBody ReviewDto reviewDto, 
-			@PathVariable Long reviewContents,
+	public void updateUnit(@RequestBody ReviewDto reviewDto, @PathVariable Long reviewContents,
 			@PathVariable Long reviewNo) {
 
 		reviewDto.setReviewContents(reviewContents);
@@ -103,21 +100,14 @@ public class ReviewRestController {
 
 	// 삭제
 	@DeleteMapping("/{reviewContents}/{reviewNo}")
-    public void delete(
-        @PathVariable("reviewContents") Long reviewContents,
-        @PathVariable("reviewNo") Long reviewNo
-    ) {
-		
-        ReviewDto originDto = reviewDao.selectOne(reviewContents, reviewNo);
-       
-        if(originDto == null) throw new TargetNotfoundException();
-        reviewService.deleteReview(reviewContents, reviewNo);
-        
-        boolean success = reviewDao.delete(reviewContents, reviewNo);
-        if(!success) throw new TargetNotfoundException();
-    }
+	public void delete(@PathVariable("reviewContents") Long reviewContents, @PathVariable("reviewNo") Long reviewNo) {
 
+		ReviewDto originDto = reviewDao.selectOne(reviewContents, reviewNo);
 
+		if (originDto == null)
+			throw new TargetNotfoundException();
+		reviewService.deleteReview(reviewContents, reviewNo);
+	}
 
 	// 좋아요 관련
 
@@ -136,8 +126,8 @@ public class ReviewRestController {
 		} else {// 좋아요 안한 상태면
 			reviewLikeDao.insert(loginId, reviewNo);
 		}
-		
-		reviewService.LikeReviewRel(reviewNo); //좋아요 상태 = 신뢰도 반영
+
+		reviewService.LikeReviewRel(reviewNo); // 좋아요 상태 = 신뢰도 반영
 
 		Long count = reviewLikeDao.countByReviewNo(reviewNo);
 
