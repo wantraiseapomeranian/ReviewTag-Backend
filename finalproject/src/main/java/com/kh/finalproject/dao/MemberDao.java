@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.dto.MemberProfileDto;
 import com.kh.finalproject.vo.PageVO;
 
 @Repository
@@ -38,6 +39,10 @@ public class MemberDao {
 	// 상세조회
 	public MemberDto selectOne(String memberId) {
 		return sqlSession.selectOne("member.detail", memberId);
+	}
+	
+	public MemberProfileDto selectProfile(String memberId) {
+		return sqlSession.selectOne("member.selectProfile", memberId);
 	}
 
 	// 닉네임 중복 검사용 조회
@@ -131,11 +136,42 @@ public class MemberDao {
 	    return sqlSession.selectOne("member.selectMap", memberId);
 
 	}
+	// -------------------------------------------------------------
+		// [추가] 관리자 포인트 관리 페이지 전용 메서드
+		// -------------------------------------------------------------
 
+		// 1. 포인트 관리용 회원 리스트 조회 (검색 기능 포함)
+    public List<MemberDto> selectPointAdminList(String keyword, int page, int size) {
+        int end = page * size;
+        int start = end - (size - 1);
 
-	// 현재 신뢰도 조회
-	public int selectReliability(String memberId) {
-		return sqlSession.selectOne("member.selectReliability", memberId);
-	}
+        Map<String, Object> params = new HashMap<>();
+        params.put("keyword", keyword);
+        params.put("start", start);
+        params.put("end", end);
 
+        return sqlSession.selectList("member.selectPointAdminList", params);
+    }
+
+    public int countPointAdminList(String keyword) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("keyword", keyword);
+        return sqlSession.selectOne("member.countPointAdminList", params);
+    }
+		// 2. 관리자 포인트 강제 지급/차감
+		public boolean adminUpdatePoint(String memberId, int amount) {
+			Map<String, Object> params = new HashMap<>();
+			params.put("memberId", memberId);
+			params.put("amount", amount);
+			return sqlSession.update("member.adminUpdatePoint", params) > 0;
+		}
+
+		// 3. 관리자 회원 정보 수정 (닉네임, 등급)
+		public boolean adminUpdateMemberInfo(MemberDto memberDto) {
+			return sqlSession.update("member.adminUpdateMemberInfo", memberDto) > 0;
+		}
+		// 현재 신뢰도 조회
+		public int selectReliability(String memberId) {
+			return sqlSession.selectOne("member.selectReliability", memberId);
+		}
 }
