@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kh.finalproject.dao.QuizReportDao;
+import com.kh.finalproject.dao.ReviewReportDao;
 import com.kh.finalproject.error.NeedPermissionException;
 import com.kh.finalproject.vo.QuizReportDetailVO;
 import com.kh.finalproject.vo.QuizReportStatsVO;
@@ -16,6 +17,9 @@ public class AdminService {
 	
 	@Autowired
 	private QuizReportDao quizReportDao;
+	
+	@Autowired
+	private ReviewReportDao reviewReportDao;
 	
 	//신고된 퀴즈 목록 조회
 	public List<QuizReportStatsVO> getReportedQuizList(Map<String, Object> params){
@@ -37,6 +41,11 @@ public class AdminService {
 				
 		return quizReportDao.selectReportDetails(quizId);
 	}
+	
+
+	//리뷰 신고 조회(마이페이지 and 관리자 페이지)
+	
+	//리뷰 신고 삭제(관리자 페이지)
 }
 
 
