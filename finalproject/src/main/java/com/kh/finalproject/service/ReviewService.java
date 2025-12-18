@@ -1,9 +1,5 @@
 package com.kh.finalproject.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,30 +25,45 @@ public class ReviewService {
 	public void addReview(ReviewDto reviewDto) {
 		reviewDao.insert(reviewDto);
 		String writer = reviewDto.getReviewWriter();
-		
+
 		memberDao.updateReliability(writer, 1);
 	}
 
 	// 리뷰 삭제시 신뢰도 -1
+	@Transactional
 	public void deleteReview(Long reviewContents, Long reviewNo) {
-		
-	    ReviewDto review = reviewDao.selectOne(reviewContents, reviewNo);
-	    if (review == null) {
-	        throw new TargetNotfoundException();
-	    }
-	    
-	    String writer = review.getReviewWriter();
-	    memberDao.updateReliability(writer, -1);
+		ReviewDto review = reviewDao.selectOne(reviewContents, reviewNo);
+		if (review == null)
+			throw new TargetNotfoundException();
+
+		String writer = review.getReviewWriter();
+
+		int reliability = memberDao.selectReliability(writer);
+		if (reliability > 0) {
+			memberDao.updateReliability(writer, -1);
+		}
+
+		reviewDao.delete(reviewContents, reviewNo);
 	}
-	
+
 	// 좋아요에 대한 신뢰도 갱신 (3좋아요 1신뢰도)
 	public void LikeReviewRel(Long reviewNo) {
 		String writer = reviewDao.findWriterByReviewNo(reviewNo);
-		int totalLike = reviewLikeDao.countTotalLikeByWriter(writer);
-		int reliability = totalLike/3;
-		
-		memberDao.updateReliabilitySet(writer, reliability);
-	}
 
+		int totalLike = reviewLikeDao.countTotalLikeByWriter(writer);
+		int likeReliability = totalLike / 3;
+//		System.out.println("총 좋아요 :"+totalLike); 
+//		System.out.println("좋아요가 3개일 시, 1신뢰도 값:"+likeReliability);
+
+		int reviewCount = reviewDao.countReviewByWriter(writer);
+//		System.out.println("총 리뷰 개수 :"+reviewCount); 
+
+		////////////////////////
+
+		int totalReliability = likeReliability + reviewCount;
+		System.out.println("총 신뢰도 :" + totalReliability);
+
+		memberDao.updateReliabilitySet(writer, totalReliability);
+	}
 
 }
