@@ -20,8 +20,8 @@ public class BoardReportStatsVO {
     private int totalReportCount;       // 총 신고 수
     
     // 유형별 카운트
-    private int count_inapposite;             // 부적절한 컨텐츠
-    private int count_hate;            // 욕설 / 비하
+    private int countInapposite;             // 부적절한 컨텐츠
+    private int countHate;            // 욕설 / 비하
     private int countSpam;              // 스팸
     private int countEtc;               // 기타
     
