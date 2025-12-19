@@ -85,6 +85,14 @@ public class PointRestController {
         // DTO 필드명이 memberId, iconId로 변경된 리스트 반환
         return iconService.getMyIcons(loginId);
     }
+    
+    // 2.1 전체 아이콘 조회
+    @GetMapping("/icon/all")
+    public List<IconDto> allIcons(){
+        return iconService.getAllIcons();
+    }
+    
+    
 
     // 3. 아이콘 장착
     // URL: POST /point/icon/equip
