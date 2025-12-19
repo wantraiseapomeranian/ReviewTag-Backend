@@ -24,12 +24,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.finalproject.dao.BoardDao;
+import com.kh.finalproject.dao.BoardReportDao;
 import com.kh.finalproject.dao.DailyQuizDao;
 import com.kh.finalproject.dao.InventoryDao;
 import com.kh.finalproject.dao.MemberDao;
 import com.kh.finalproject.dao.MemberIconDao;
 import com.kh.finalproject.dao.MemberTokenDao;
+
+import com.kh.finalproject.dto.BoardDto;
+
 import com.kh.finalproject.dao.PointItemStoreDao;
+
 import com.kh.finalproject.dto.IconDto;
 import com.kh.finalproject.dto.InventoryDto;
 import com.kh.finalproject.dto.MemberDto;
@@ -92,6 +97,9 @@ public class AdminRestController {
 	
 	@Autowired
 	private BoardDao boardDao;
+	
+	@Autowired
+	private BoardReportDao boardReportDao;
 	
 	
 	
@@ -422,8 +430,14 @@ public class AdminRestController {
   		
   		String loginLevel = tokenVO.getLoginLevel();
   		
-          return adminService.getReportBDetails(loginLevel, boardNo);
+         return adminService.getReportBDetails(loginLevel, boardNo);
       }
+  	
+  	//게시글 내용 조회
+  	@GetMapping("/board/{boardNo}/text")
+  	public BoardDto getBoardText(@PathVariable int boardNo) {
+  		return boardReportDao.selectBoardText(boardNo);
+  	}
   	
   	//게시글 삭제
   	@DeleteMapping("/board/{boardNo}")
