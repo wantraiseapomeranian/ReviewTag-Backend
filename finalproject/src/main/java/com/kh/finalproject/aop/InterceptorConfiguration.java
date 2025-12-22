@@ -20,8 +20,13 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         
     	registry.addInterceptor(tokenParsingInterceptor)
     	.addPathPatterns(
-    			"/board/**",
-    			"/board/viewUpdate/**");
+    			"/board/write",
+    			"/board/edit",
+    			"/board/delete",
+    			"/board/viewUpdate/**",
+    			"/board/reply/**");
+
+    	
     	
     	
     	
