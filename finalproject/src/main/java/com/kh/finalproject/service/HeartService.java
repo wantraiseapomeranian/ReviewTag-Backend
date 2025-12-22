@@ -111,4 +111,21 @@ public class HeartService {
 		return heartDao.selectHeart(memberId);
 	}
 	
+	//하트 개수 조회
+	public long checkHeart(String memberId) {
+		
+		//DTO 조회
+	    HeartDto heartDto = heartDao.selectHeart(memberId);
+	    
+	    //하트 지갑이 있는지 조회
+	    if (heartDto == null) throw new NotEnoughHeartException();
+	    
+	    //개수만 꺼내기
+	    long currentHeart = heartDto.getHeartCount(); 
+	    
+	    //개수 비교
+	    if (currentHeart < 1) throw new NotEnoughHeartException();
+	    
+	    return currentHeart;
+	}
 }

@@ -26,6 +26,9 @@ public class QuizLogService {
 	@Autowired
 	private PointService pointService;
 	
+	@Autowired
+	private HeartService heartService;
+	
 	
 	@Transactional
 	//퀴즈 기록 등록
@@ -33,6 +36,9 @@ public class QuizLogService {
 		
 		//로그인 검사
 		if(memberId == null) throw new NeedPermissionException("로그인이 필요합니다.");
+		
+		//하트 차감
+		heartService.useHeartForQuiz(memberId);
 		
 		int correctCount = 0;
 		

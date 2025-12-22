@@ -21,7 +21,6 @@ public class QuizService {
 	private HeartService heartService;
 	
 	//퀴즈 등록
-	//추후 퀴즈 등록 시 포인트 지급이 필요한 경우 추가 로직 작성이 필요함
 	@Transactional
 	public QuizDto registQuiz(QuizDto quizDto) {
         return quizDao.insert(quizDto);
@@ -34,8 +33,8 @@ public class QuizService {
 		//로그인 상태 검사
 		if(memberId == null) throw new NeedPermissionException("로그인이 필요합니다.");
 		
-		//하트 차감
-		heartService.useHeartForQuiz(memberId);
+		//하트 보유 여부 확인
+		heartService.checkHeart(memberId);
 		
 		//문제 출제
         return quizDao.selectRandomQuizList(contentsId, memberId);
