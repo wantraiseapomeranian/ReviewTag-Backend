@@ -30,6 +30,7 @@ import com.kh.finalproject.vo.MemberAddQuizListVO;
 import com.kh.finalproject.vo.MemberLoginResponseVO;
 import com.kh.finalproject.vo.MemberMypageResponseVO;
 import com.kh.finalproject.vo.MemberPointVO;
+import com.kh.finalproject.vo.MemberProfileResponseVO;
 import com.kh.finalproject.vo.MemberQuizListVO;
 import com.kh.finalproject.vo.MemberQuizRateVO;
 import com.kh.finalproject.vo.MemberRefreshVO;
@@ -86,8 +87,17 @@ public class MemberRestController {
 	}
 	
 	@GetMapping("/profile/{memberId}")
-	public MemberProfileDto selectProfile(@PathVariable String memberId) {
-		return memberDao.selectProfile(memberId);
+	public MemberProfileResponseVO selectProfile(@PathVariable String memberId) {
+		MemberProfileDto memberProfileDto =  memberDao.selectProfile(memberId);
+		if(memberProfileDto == null) throw new TargetNotfoundException();
+		
+		MemberPointVO pointVO = pointService.getMyPointInfo(memberId);
+		
+		
+		return MemberProfileResponseVO.builder()
+                .profile(memberProfileDto)
+                .point(pointVO)
+                .build();
 	}
 	
 	@GetMapping("/mypage/{loginId}")
