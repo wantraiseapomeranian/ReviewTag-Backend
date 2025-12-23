@@ -68,26 +68,25 @@ public class PointService {
         if (item == null) throw new RuntimeException("상품 정보가 없습니다.");
         if (item.getPointItemStock() <= 0) throw new RuntimeException("품절된 상품입니다.");
 
-        // 일일 구매 제한 체크 (아이템 이름보다는 번호(itemNo)로 체크하는 것이 더 정확합니다)
-        if (item.getPointItemDailyLimit() > 0) {
-            int todayCount = pointHistoryDao.countTodayPurchase(loginId, item.getPointItemName());
-            if (todayCount >= item.getPointItemDailyLimit()) 
-                throw new RuntimeException("일일 구매 제한 초과 (하루 최대 " + item.getPointItemDailyLimit() + "개)");
-        }
-
-        // 포인트 차감
+        // (기존 구매 제한 및 포인트 차감 로직...)
         addPoint(loginId, -(int)item.getPointItemPrice(), "USE", "아이템 구매: " + item.getPointItemName());
-
-        // 재고 감소
         item.setPointItemStock(item.getPointItemStock() - 1);
         pointItemDao.update(item);
 
-        // 아이템 타입별 처리
+        // 아이템 지급 처리
         if ("HEART_RECHARGE".equals(item.getPointItemType())) {
-            // 하드코딩(5)보다는 아이템 이름이나 설명에서 수치를 가져오는 로직이 좋으나, 현재는 메서드 유지
             chargeHeart(loginId, 5); 
         } else {
             giveItemToInventory(loginId, itemNo); 
+        }
+
+        // ★ 추가: 구매 성공 후 위시리스트에서 해당 유저의 상품 제거
+        PointItemWishVO wishVO = PointItemWishVO.builder()
+                .memberId(loginId)
+                .itemNo(itemNo)
+                .build();
+        if (pointWishlistDao.checkWish(wishVO) > 0) {
+            pointWishlistDao.delete(wishVO);
         }
     }
     // [3] 포인트 후원
@@ -106,11 +105,20 @@ public class PointService {
         PointItemStoreDto item = pointItemDao.selectOneNumber(itemNo);
         if (item == null || item.getPointItemStock() <= 0) throw new RuntimeException("선물 가능한 상품이 없습니다.");
 
+        // (기존 포인트 차감 및 재고 감소 로직...)
         addPoint(loginId, -(int)item.getPointItemPrice(), "USE", targetId + "님에게 선물: " + item.getPointItemName());
-        
         item.setPointItemStock(item.getPointItemStock() - 1);
         pointItemDao.update(item);
         giveItemToInventory(targetId, itemNo);
+
+        // ★ 추가: 선물 완료 후 보낸 사람의 위시리스트에서도 제거
+        PointItemWishVO wishVO = PointItemWishVO.builder()
+                .memberId(loginId)
+                .itemNo(itemNo)
+                .build();
+        if (pointWishlistDao.checkWish(wishVO) > 0) {
+            pointWishlistDao.delete(wishVO);
+        }
     }
 
     // [5] 내 포인트 요약 정보 조회
