@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.kh</groupId>
-	<artifactId>finalproject</artifactId>
+	<artifactId>Review-Tag</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>finalproject</name>
+	<name>Review-Tag</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
